@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅶ</title>
+  <title>Sprint Timer Web Var.Ⅷ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     body {
@@ -72,15 +72,36 @@
       position: relative;
       display: inline-block;
     }
-    #scanMarker {
+    #scanMarker-wrapper {
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 4px;
-      background: yellow;
+      width: 30px;
+      transform: translateX(-50%);
       cursor: ew-resize;
       z-index: 10;
       display: none;
+    }
+    #scanMarker-line {
+      width: 4px;
+      background: yellow;
+      height: 100%;
+      margin: 0 auto;
+    }
+    .mark-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: white;
+      z-index: 9;
+    }
+    .mark-label {
+      position: absolute;
+      top: -20px;
+      font-size: 14px;
+      color: white;
+      text-shadow: 1px 1px 2px black;
     }
     #timeDisplay {
       margin-top: 8px;
@@ -90,7 +111,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅶ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅷ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -115,9 +136,12 @@
 
   <div id="canvas-container">
     <canvas id="scanCanvas"></canvas>
-    <div id="scanMarker"></div>
+    <div id="scanMarker-wrapper">
+      <div id="scanMarker-line"></div>
+    </div>
   </div>
   <div id="timeDisplay"></div>
+  <button id="markBtn">📍 記録</button>
 
   <div id="output"></div>
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
@@ -131,12 +155,15 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
-    const scanMarker = document.getElementById('scanMarker');
+    const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
+    const scanMarkerLine = document.getElementById('scanMarker-line');
     const timeDisplay = document.getElementById('timeDisplay');
     const output = document.getElementById('output');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
+    const markBtn = document.getElementById('markBtn');
+    const canvasContainer = document.getElementById('canvas-container');
 
     let guideX = 0.5;
     let videoDuration = 0;
@@ -158,9 +185,10 @@
             range: { min: 0, max: videoDuration },
             step: 0.01,
           });
-          slider.on('update', (values) => {
+          slider.on('update', (values, handle) => {
             range = values.map(parseFloat);
             rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+            video.currentTime = range[handle];
           });
         };
       }
@@ -222,19 +250,20 @@
 
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
-      scanMarker.style.display = 'block';
-      scanMarker.style.left = '0px';
+      scanMarkerWrapper.style.display = 'block';
+      scanMarkerWrapper.style.left = '0px';
     };
 
     function updateTimeFromMarker(x) {
       const width = scanCanvas.width;
       const percent = Math.max(0, Math.min(1, x / width));
       const t = range[0] + percent * (range[1] - range[0]);
-      scanMarker.style.left = `${percent * 100}%`;
+      scanMarkerWrapper.style.left = `${percent * 100}%`;
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+      return { x: percent * scanCanvas.width, t };
     }
 
-    scanMarker.addEventListener('mousedown', (e) => {
+    scanMarkerWrapper.addEventListener('mousedown', (e) => {
       const rect = scanCanvas.getBoundingClientRect();
       const onMove = (ev) => updateTimeFromMarker(ev.clientX - rect.left);
       document.addEventListener('mousemove', onMove);
@@ -250,6 +279,21 @@
     scanCanvas.addEventListener('touchstart', (e) => {
       const rect = scanCanvas.getBoundingClientRect();
       updateTimeFromMarker(e.touches[0].clientX - rect.left);
+    });
+
+    markBtn.addEventListener('click', () => {
+      const { x, t } = updateTimeFromMarker(parseFloat(scanMarkerWrapper.style.left) / 100 * scanCanvas.width);
+      const line = document.createElement('div');
+      line.className = 'mark-line';
+      line.style.left = `${x}px`;
+
+      const label = document.createElement('div');
+      label.className = 'mark-label';
+      label.style.left = `${x - 15}px`;
+      label.innerText = t.toFixed(2);
+
+      canvasContainer.appendChild(line);
+      canvasContainer.appendChild(label);
     });
   </script>
 </body>
