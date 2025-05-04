@@ -23,6 +23,9 @@
       touch-action: none;
       cursor: ew-resize;
     }
+    #controls {
+      margin: 8px 0;
+    }
   </style>
 </head>
 <body>
@@ -34,7 +37,13 @@
     <video id="video" controls></video>
     <div id="guide-line"></div>
   </div>
-  <button id="process">判定開始</button>
+
+  <div id="controls">
+    <button id="playBtn">▶ 再生</button>
+    <button id="pauseBtn">⏸ 停止</button>
+    <button id="process">判定開始</button>
+  </div>
+
   <canvas id="scanCanvas" style="display:none;"></canvas>
   <div id="output"></div>
 
@@ -45,10 +54,12 @@
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const output = document.getElementById('output');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
 
-    let guideX = 0.5; // 画面の中央から開始（比率）
+    let guideX = 0.5; // 初期位置：中央
 
-    // 動画アップロード処理
+    // 動画アップロード
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -57,39 +68,55 @@
       }
     });
 
-    // ドラッグでガイドライン調整
+    // 再生・停止ボタン
+    playBtn.addEventListener('click', () => video.play());
+    pauseBtn.addEventListener('click', () => video.pause());
+
+    // 判定ラインのドラッグ移動
     let dragging = false;
-    guideLine.addEventListener('mousedown', () => dragging = true);
-    document.addEventListener('mouseup', () => dragging = false);
+
+    const updateGuideLine = (x, rect) => {
+      const ratio = Math.max(0, Math.min(1, x / rect.width));
+      guideLine.style.left = `${ratio * 100}%`;
+      guideX = ratio;
+    };
+
+    guideLine.addEventListener('mousedown', (e) => {
+      dragging = true;
+      const rect = video.getBoundingClientRect();
+      updateGuideLine(e.clientX - rect.left, rect);
+    });
+
     document.addEventListener('mousemove', (e) => {
       if (!dragging) return;
       const rect = video.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const ratio = Math.max(0, Math.min(1, x / rect.width));
-      guideLine.style.left = `${ratio * 100}%`;
-      guideX = ratio;
+      updateGuideLine(e.clientX - rect.left, rect);
     });
 
-    // タッチ対応
-    guideLine.addEventListener('touchstart', () => dragging = true);
-    document.addEventListener('touchend', () => dragging = false);
+    document.addEventListener('mouseup', () => dragging = false);
+
+    guideLine.addEventListener('touchstart', (e) => {
+      dragging = true;
+      const rect = video.getBoundingClientRect();
+      updateGuideLine(e.touches[0].clientX - rect.left, rect);
+    });
+
     document.addEventListener('touchmove', (e) => {
       if (!dragging) return;
       const rect = video.getBoundingClientRect();
-      const x = e.touches[0].clientX - rect.left;
-      const ratio = Math.max(0, Math.min(1, x / rect.width));
-      guideLine.style.left = `${ratio * 100}%`;
-      guideX = ratio;
+      updateGuideLine(e.touches[0].clientX - rect.left, rect);
     });
 
-    // 判定処理（ラインスキャン画像生成）
+    document.addEventListener('touchend', () => dragging = false);
+
+    // 判定処理
     processButton.addEventListener('click', async () => {
       if (!video.duration || video.readyState < 2) {
         alert("動画を読み込んでください。");
         return;
       }
 
-      const fps = 240; // 仮に240fpsとして処理
+      const fps = 240; // 仮のフレームレート
       const totalFrames = Math.floor(video.duration * fps);
 
       const canvas = document.createElement('canvas');
