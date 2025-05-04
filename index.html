@@ -212,12 +212,20 @@ function updateTimeFromMarker(x) {
 }
 
 function enableMarkerDrag(wrapper) {
-  const rect = scanCanvas.getBoundingClientRect();
-    const offsetX = e.touches ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
   const onMove = (e) => {
+    const rect = scanCanvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    updateTimeFromMarker(offsetX);
+    updateTimeFromMarker(clientX - rect.left);
   };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', () => {
+    document.removeEventListener('mousemove', onMove);
+  }, { once: true });
+  document.addEventListener('touchmove', onMove);
+  document.addEventListener('touchend', () => {
+    document.removeEventListener('touchmove', onMove);
+  }, { once: true });
+};
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', () => {
     document.removeEventListener('mousemove', onMove);
