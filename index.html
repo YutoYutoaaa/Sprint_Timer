@@ -81,6 +81,12 @@
       position: relative;
       display: inline-block;
       touch-action: none;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    #scanCanvas {
+      display: block;
+      max-height: 300px;
     }
     #scanMarker-wrapper {
       position: absolute;
@@ -159,6 +165,7 @@
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
+    const scanMarkerLine = document.getElementById('scanMarker-line');
     const timeDisplay = document.getElementById('timeDisplay');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
@@ -220,7 +227,7 @@
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
       const fps = 240;
-      const step = 2.4; // 約100fps相当
+      const step = 2.4;
       const [startTime, endTime] = range;
       const startFrame = Math.floor(startTime * fps);
       const endFrame = Math.floor(endTime * fps);
