@@ -162,11 +162,6 @@
   <div id="output"></div>
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-  <script>
-    // JavaScriptコードは完全な状態で続きます（次に分割して送信します）
-  </script>
-</body>
-</html>
 <script>
 const fileInput = document.getElementById('fileInput');
 const video = document.getElementById('video');
@@ -250,8 +245,8 @@ document.addEventListener('touchend', () => dragging = false);
 
 processButton.onclick = async () => {
   if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
-  const fps = 240;
-  const step = 2.4;
+  const fps = 100;
+  const step = 1;
   const [startTime, endTime] = range;
   const startFrame = Math.floor(startTime * fps);
   const endFrame = Math.floor(endTime * fps);
@@ -331,3 +326,5 @@ markBtn.addEventListener('click', () => {
   canvasContainer.appendChild(label);
 });
 </script>
+</body>
+</html>
