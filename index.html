@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅵ</title>
+  <title>Sprint Timer Web Var.Ⅶ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     body {
@@ -76,10 +76,11 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 2px;
-      background: red;
+      width: 4px;
+      background: yellow;
       cursor: ew-resize;
       z-index: 10;
+      display: none;
     }
     #timeDisplay {
       margin-top: 8px;
@@ -89,7 +90,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅵ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅶ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -139,8 +140,8 @@
 
     let guideX = 0.5;
     let videoDuration = 0;
-
     let range = [0, 5];
+    let slider;
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -150,7 +151,17 @@
         video.load();
         video.onloadedmetadata = () => {
           videoDuration = video.duration;
-          slider.set([0, Math.min(5, videoDuration)]);
+          if (slider) slider.destroy();
+          slider = noUiSlider.create(rangeSlider, {
+            start: [0, Math.min(5, videoDuration)],
+            connect: true,
+            range: { min: 0, max: videoDuration },
+            step: 0.01,
+          });
+          slider.on('update', (values) => {
+            range = values.map(parseFloat);
+            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+          });
         };
       }
     });
@@ -176,18 +187,6 @@
       }
     };
     document.onmouseup = () => dragging = false;
-
-    const slider = noUiSlider.create(rangeSlider, {
-      start: [0, 5],
-      connect: true,
-      range: { min: 0, max: 60 },
-      step: 0.01,
-    });
-
-    slider.on('update', (values) => {
-      range = values.map(parseFloat);
-      rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-    });
 
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
@@ -223,24 +222,35 @@
 
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
-      scanMarker.style.left = '0px';
       scanMarker.style.display = 'block';
+      scanMarker.style.left = '0px';
     };
 
-    scanMarker.onmousedown = function(e) {
-      const container = document.getElementById('canvas-container');
-      const rect = container.getBoundingClientRect();
-      const onMove = (ev) => {
-        const x = Math.max(0, Math.min(ev.clientX - rect.left, scanCanvas.width));
-        scanMarker.style.left = `${x}px`;
-        const t = range[0] + (x / scanCanvas.width) * (range[1] - range[0]);
-        timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-      };
+    function updateTimeFromMarker(x) {
+      const width = scanCanvas.width;
+      const percent = Math.max(0, Math.min(1, x / width));
+      const t = range[0] + percent * (range[1] - range[0]);
+      scanMarker.style.left = `${percent * 100}%`;
+      timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+    }
+
+    scanMarker.addEventListener('mousedown', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      const onMove = (ev) => updateTimeFromMarker(ev.clientX - rect.left);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', () => {
         document.removeEventListener('mousemove', onMove);
       }, { once: true });
-    };
+    });
+
+    scanCanvas.addEventListener('click', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.clientX - rect.left);
+    });
+    scanCanvas.addEventListener('touchstart', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.touches[0].clientX - rect.left);
+    });
   </script>
 </body>
 </html>
