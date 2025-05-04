@@ -225,6 +225,15 @@ function enableMarkerDrag(wrapper) {
   document.addEventListener('touchend', () => {
     document.removeEventListener('touchmove', onMove);
   }, { once: true });
+}
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', () => {
+    document.removeEventListener('mousemove', onMove);
+  }, { once: true });
+  document.addEventListener('touchmove', onMove);
+  document.addEventListener('touchend', () => {
+    document.removeEventListener('touchmove', onMove);
+  }, { once: true });
 };
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', () => {
