@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅺ</title>
+  <title>Sprint Timer Web Var.Ⅻ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     * {
@@ -119,7 +119,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅺ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅻ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -227,6 +227,7 @@
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
       const fps = 240;
+      const step = 2.4; // 100fps相当で処理
       const [startTime, endTime] = range;
       const startFrame = Math.floor(startTime * fps);
       const endFrame = Math.floor(endTime * fps);
@@ -235,17 +236,18 @@
       tempCanvas.width = video.videoWidth;
       tempCanvas.height = video.videoHeight;
       const tempCtx = tempCanvas.getContext('2d');
-      scanCanvas.width = endFrame - startFrame;
+      scanCanvas.width = Math.ceil((endFrame - startFrame) / step);
       scanCanvas.height = video.videoHeight;
       const scanCtx = scanCanvas.getContext('2d');
-      for (let i = startFrame, x = 0; i < endFrame; i++, x++) {
+      let x = 0;
+      for (let i = startFrame; i < endFrame; i += step) {
         await new Promise(resolve => {
           video.currentTime = i / fps;
           video.onseeked = () => {
             tempCtx.drawImage(video, 0, 0);
             const guideXpx = Math.floor(tempCanvas.width * guideX);
             const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-            scanCtx.putImageData(line, x, 0);
+            scanCtx.putImageData(line, x++, 0);
             resolve();
           };
         });
