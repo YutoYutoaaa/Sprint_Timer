@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅷ</title>
+  <title>Sprint Timer Web Var.Ⅶ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
@@ -203,12 +203,16 @@ processButton.onclick = async () => {
 };
 
 function updateTimeFromMarker(x) {
+  const canvasLeft = scanCanvas.getBoundingClientRect().left;
+  const containerLeft = canvasContainer.getBoundingClientRect().left;
+  const scrollOffset = canvasContainer.scrollLeft;
+  const relativeX = x + scrollOffset - (canvasLeft - containerLeft);
   const width = scanCanvas.width;
-  const percent = Math.max(0, Math.min(1, x / width));
+  const percent = Math.max(0, Math.min(1, relativeX / width));
   const t = range[0] + percent * (range[1] - range[0]);
   scanMarkerWrapper.style.left = `${percent * 100}%`;
   timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-  return { x: percent * scanCanvas.width, t };
+  return { x: percent * width, t };
 }
 
 function enableMarkerDrag(wrapper) {
