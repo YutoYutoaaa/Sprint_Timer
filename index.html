@@ -67,7 +67,7 @@
 <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
 <input type="file" id="fileInput" accept="video/*">
 <div id="video-container">
-  <video id="video" controls muted playsinline webkit-playsinline preload="metadata"></video>
+  <video id="video" controls disablePictureInPicture muted playsinline webkit-playsinline preload="metadata"></video>
   <div id="guide-wrapper">
     <div id="guide-line"></div>
   </div>
@@ -199,6 +199,11 @@ processButton.onclick = async () => {
   scanCanvas.style.display = 'block';
   scanMarkerWrapper.style.display = 'block';
   scanMarkerWrapper.style.left = '0px';
+
+  // 判定後はインタラクションを無効化
+  scanCanvas.style.pointerEvents = 'none';
+  scanMarkerWrapper.style.pointerEvents = 'none';
+};
 };
 
 function updateTimeFromMarker(x) {
