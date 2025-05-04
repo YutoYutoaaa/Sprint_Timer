@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅷ</title>
+  <title>Sprint Timer Web Var.Ⅸ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     body {
@@ -79,8 +79,9 @@
       width: 30px;
       transform: translateX(-50%);
       cursor: ew-resize;
-      z-index: 10;
+      z-index: 20;
       display: none;
+      touch-action: none;
     }
     #scanMarker-line {
       width: 4px;
@@ -94,7 +95,7 @@
       bottom: 0;
       width: 2px;
       background: white;
-      z-index: 9;
+      z-index: 19;
     }
     .mark-label {
       position: absolute;
@@ -111,7 +112,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅷ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅸ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -263,19 +264,31 @@
       return { x: percent * scanCanvas.width, t };
     }
 
-    scanMarkerWrapper.addEventListener('mousedown', (e) => {
+    function enableMarkerDrag(wrapper) {
       const rect = scanCanvas.getBoundingClientRect();
-      const onMove = (ev) => updateTimeFromMarker(ev.clientX - rect.left);
-      document.addEventListener('mousemove', onMove);
+
+      const onMouseMove = (e) => updateTimeFromMarker(e.clientX - rect.left);
+      const onTouchMove = (e) => updateTimeFromMarker(e.touches[0].clientX - rect.left);
+
+      document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', () => {
-        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mousemove', onMouseMove);
       }, { once: true });
-    });
+
+      document.addEventListener('touchmove', onTouchMove);
+      document.addEventListener('touchend', () => {
+        document.removeEventListener('touchmove', onTouchMove);
+      }, { once: true });
+    }
+
+    scanMarkerWrapper.addEventListener('mousedown', () => enableMarkerDrag(scanMarkerWrapper));
+    scanMarkerWrapper.addEventListener('touchstart', () => enableMarkerDrag(scanMarkerWrapper));
 
     scanCanvas.addEventListener('click', (e) => {
       const rect = scanCanvas.getBoundingClientRect();
       updateTimeFromMarker(e.clientX - rect.left);
     });
+
     scanCanvas.addEventListener('touchstart', (e) => {
       const rect = scanCanvas.getBoundingClientRect();
       updateTimeFromMarker(e.touches[0].clientX - rect.left);
