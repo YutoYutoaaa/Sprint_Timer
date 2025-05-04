@@ -12,16 +12,25 @@
     video {
       width: 100%;
     }
+    #guide-wrapper {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 30px; /* ユーザーがタップしやすい幅 */
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+      touch-action: none;
+    }
     #guide-line {
       position: absolute;
       top: 0;
       bottom: 0;
+      left: 50%;
       width: 2px;
       background-color: red;
-      left: 50%;
       transform: translateX(-50%);
-      touch-action: none;
-      cursor: ew-resize;
+      pointer-events: none;
     }
     #controls {
       margin: 8px 0;
@@ -35,7 +44,9 @@
   <input type="file" id="fileInput" accept="video/*">
   <div id="video-container">
     <video id="video" controls></video>
-    <div id="guide-line"></div>
+    <div id="guide-wrapper">
+      <div id="guide-line"></div>
+    </div>
   </div>
 
   <div id="controls">
@@ -50,7 +61,7 @@
   <script>
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
-    const guideLine = document.getElementById('guide-line');
+    const guideWrapper = document.getElementById('guide-wrapper');
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const output = document.getElementById('output');
@@ -77,11 +88,11 @@
 
     const updateGuideLine = (x, rect) => {
       const ratio = Math.max(0, Math.min(1, x / rect.width));
-      guideLine.style.left = `${ratio * 100}%`;
+      guideWrapper.style.left = `${ratio * 100}%`;
       guideX = ratio;
     };
 
-    guideLine.addEventListener('mousedown', (e) => {
+    guideWrapper.addEventListener('mousedown', (e) => {
       dragging = true;
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.clientX - rect.left, rect);
@@ -95,7 +106,7 @@
 
     document.addEventListener('mouseup', () => dragging = false);
 
-    guideLine.addEventListener('touchstart', (e) => {
+    guideWrapper.addEventListener('touchstart', (e) => {
       dragging = true;
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.touches[0].clientX - rect.left, rect);
