@@ -47,6 +47,9 @@
     #controls, #slider-section {
       margin: 12px 0;
     }
+    #slider-section {
+      margin-bottom: 40px;
+    }
     button, label.custom-file-upload {
       font-size: 20px;
       padding: 12px 24px;
@@ -118,30 +121,24 @@
   </style>
 </head>
 <body>
-
   <h2>Sprint Timer Web <strong>Var.Ⅻ</strong></h2>
-
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
-
   <div id="video-container">
     <video id="video" controls muted playsinline webkit-playsinline></video>
     <div id="guide-wrapper">
       <div id="guide-line"></div>
     </div>
   </div>
-
   <div id="controls">
     <button id="playBtn">▶ 再生</button>
     <button id="pauseBtn">⏸ 停止</button>
     <button id="process">判定開始</button>
   </div>
-
   <div id="slider-section">
     <div id="rangeSlider"></div>
     <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
   </div>
-
   <div id="canvas-container">
     <canvas id="scanCanvas"></canvas>
     <div id="scanMarker-wrapper">
@@ -150,10 +147,8 @@
   </div>
   <div id="timeDisplay"></div>
   <button id="markBtn">📍 記録</button>
-
   <div id="output"></div>
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script>
     const fileInput = document.getElementById('fileInput');
@@ -164,14 +159,12 @@
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
-    const scanMarkerLine = document.getElementById('scanMarker-line');
     const timeDisplay = document.getElementById('timeDisplay');
-    const output = document.getElementById('output');
-    const loadingOverlay = document.getElementById('loadingOverlay');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
     const markBtn = document.getElementById('markBtn');
     const canvasContainer = document.getElementById('canvas-container');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     let guideX = 0.5;
     let videoDuration = 0;
@@ -227,7 +220,7 @@
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
       const fps = 240;
-      const step = 2.4; // 100fps相当で処理
+      const step = 2.4; // 約100fps相当
       const [startTime, endTime] = range;
       const startFrame = Math.floor(startTime * fps);
       const endFrame = Math.floor(endTime * fps);
