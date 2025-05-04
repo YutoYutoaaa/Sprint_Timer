@@ -27,7 +27,7 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 30px;
+      width: 60px; /* ← クリックしやすく拡大 */
       left: 50%;
       transform: translateX(-50%);
       cursor: ew-resize;
@@ -87,6 +87,7 @@
     #scanCanvas {
       display: block;
       max-height: 300px;
+      width: 300%; /* ← 横幅を約3倍に拡大 */
     }
     #scanMarker-wrapper {
       position: absolute;
@@ -127,7 +128,6 @@
   </style>
 </head>
 <body>
-  <h2>Sprint Timer Web <strong>Var.Ⅻ</strong></h2>
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
   <div id="video-container">
@@ -158,154 +158,153 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script>
     const fileInput = document.getElementById('fileInput');
-    const video = document.getElementById('video');
-    const guideWrapper = document.getElementById('guide-wrapper');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const processButton = document.getElementById('process');
-    const scanCanvas = document.getElementById('scanCanvas');
-    const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
-    const scanMarkerLine = document.getElementById('scanMarker-line');
-    const timeDisplay = document.getElementById('timeDisplay');
-    const rangeSlider = document.getElementById('rangeSlider');
-    const rangeText = document.getElementById('rangeText');
-    const markBtn = document.getElementById('markBtn');
-    const canvasContainer = document.getElementById('canvas-container');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+const video = document.getElementById('video');
+const guideWrapper = document.getElementById('guide-wrapper');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const processButton = document.getElementById('process');
+const scanCanvas = document.getElementById('scanCanvas');
+const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
+const timeDisplay = document.getElementById('timeDisplay');
+const rangeSlider = document.getElementById('rangeSlider');
+const rangeText = document.getElementById('rangeText');
+const markBtn = document.getElementById('markBtn');
+const canvasContainer = document.getElementById('canvas-container');
+const loadingOverlay = document.getElementById('loadingOverlay');
 
-    let guideX = 0.5;
-    let videoDuration = 0;
-    let range = [0, 5];
-    let slider;
+let guideX = 0.5;
+let videoDuration = 0;
+let range = [0, 5];
+let slider;
 
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        video.src = url;
-        video.load();
-        video.onloadedmetadata = () => {
-          videoDuration = video.duration;
-          if (slider) slider.destroy();
-          slider = noUiSlider.create(rangeSlider, {
-            start: [0, Math.min(5, videoDuration)],
-            connect: true,
-            range: { min: 0, max: videoDuration },
-            step: 0.01,
-          });
-          slider.on('update', (values, handle) => {
-            range = values.map(parseFloat);
-            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-            if (video.readyState >= 1) video.currentTime = range[handle];
-          });
-        };
-      }
-    });
-
-    playBtn.onclick = () => video.play();
-    pauseBtn.onclick = () => video.pause();
-
-    let dragging = false;
-    const updateGuideLine = (x, rect) => {
-      const ratio = Math.max(0, Math.min(1, x / rect.width));
-      guideWrapper.style.left = `${ratio * 100}%`;
-      guideX = ratio;
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.load();
+    video.onloadedmetadata = () => {
+      videoDuration = video.duration;
+      if (slider) slider.destroy();
+      slider = noUiSlider.create(rangeSlider, {
+        start: [0, Math.min(5, videoDuration)],
+        connect: true,
+        range: { min: 0, max: videoDuration },
+        step: 0.01,
+      });
+      slider.on('update', (values, handle) => {
+        range = values.map(parseFloat);
+        rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+        if (video.readyState >= 1) video.currentTime = range[handle];
+      });
     };
-    guideWrapper.onmousedown = e => {
-      dragging = true;
-      const rect = video.getBoundingClientRect();
-      updateGuideLine(e.clientX - rect.left, rect);
-    };
-    document.onmousemove = e => {
-      if (dragging) {
-        const rect = video.getBoundingClientRect();
-        updateGuideLine(e.clientX - rect.left, rect);
-      }
-    };
-    document.onmouseup = () => dragging = false;
+  }
+});
 
-    processButton.onclick = async () => {
-      if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
-      const fps = 240;
-      const step = 2.4;
-      const [startTime, endTime] = range;
-      const startFrame = Math.floor(startTime * fps);
-      const endFrame = Math.floor(endTime * fps);
-      loadingOverlay.style.display = 'flex';
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = video.videoWidth;
-      tempCanvas.height = video.videoHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-      scanCanvas.width = Math.ceil((endFrame - startFrame) / step);
-      scanCanvas.height = video.videoHeight;
-      const scanCtx = scanCanvas.getContext('2d');
-      let x = 0;
-      for (let i = startFrame; i < endFrame; i += step) {
-        await new Promise(resolve => {
-          video.currentTime = i / fps;
-          video.onseeked = () => {
-            tempCtx.drawImage(video, 0, 0);
-            const guideXpx = Math.floor(tempCanvas.width * guideX);
-            const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-            scanCtx.putImageData(line, x++, 0);
-            resolve();
-          };
-        });
-      }
-      loadingOverlay.style.display = 'none';
-      scanCanvas.style.display = 'block';
-      scanMarkerWrapper.style.display = 'block';
-      scanMarkerWrapper.style.left = '0px';
-    };
+playBtn.onclick = () => video.play();
+pauseBtn.onclick = () => video.pause();
 
-    function updateTimeFromMarker(x) {
-      const width = scanCanvas.width;
-      const percent = Math.max(0, Math.min(1, x / width));
-      const t = range[0] + percent * (range[1] - range[0]);
-      scanMarkerWrapper.style.left = `${percent * 100}%`;
-      timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-      return { x: percent * scanCanvas.width, t };
-    }
+let dragging = false;
+const updateGuideLine = (x, rect) => {
+  const ratio = Math.max(0, Math.min(1, x / rect.width));
+  guideWrapper.style.left = `${ratio * 100}%`;
+  guideX = ratio;
+};
+guideWrapper.onmousedown = e => {
+  dragging = true;
+  const rect = video.getBoundingClientRect();
+  updateGuideLine(e.clientX - rect.left, rect);
+};
+document.onmousemove = e => {
+  if (dragging) {
+    const rect = video.getBoundingClientRect();
+    updateGuideLine(e.clientX - rect.left, rect);
+  }
+};
+document.onmouseup = () => dragging = false;
 
-    function enableMarkerDrag(wrapper) {
-      const rect = scanCanvas.getBoundingClientRect();
-      const onMouseMove = (e) => updateTimeFromMarker(e.clientX - rect.left);
-      const onTouchMove = (e) => updateTimeFromMarker(e.touches[0].clientX - rect.left);
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', () => {
-        document.removeEventListener('mousemove', onMouseMove);
-      }, { once: true });
-      document.addEventListener('touchmove', onTouchMove);
-      document.addEventListener('touchend', () => {
-        document.removeEventListener('touchmove', onTouchMove);
-      }, { once: true });
-    }
-
-    scanMarkerWrapper.addEventListener('mousedown', () => enableMarkerDrag(scanMarkerWrapper));
-    scanMarkerWrapper.addEventListener('touchstart', () => enableMarkerDrag(scanMarkerWrapper));
-
-    scanCanvas.addEventListener('click', (e) => {
-      const rect = scanCanvas.getBoundingClientRect();
-      updateTimeFromMarker(e.clientX - rect.left);
+processButton.onclick = async () => {
+  if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
+  const fps = 240;
+  const step = 2.4;
+  const [startTime, endTime] = range;
+  const startFrame = Math.floor(startTime * fps);
+  const endFrame = Math.floor(endTime * fps);
+  loadingOverlay.style.display = 'flex';
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
+  const tempCtx = tempCanvas.getContext('2d');
+  scanCanvas.width = Math.ceil((endFrame - startFrame) / step);
+  scanCanvas.height = video.videoHeight;
+  const scanCtx = scanCanvas.getContext('2d');
+  let x = 0;
+  for (let i = startFrame; i < endFrame; i += step) {
+    await new Promise(resolve => {
+      video.currentTime = i / fps;
+      video.onseeked = () => {
+        tempCtx.drawImage(video, 0, 0);
+        const guideXpx = Math.floor(tempCanvas.width * guideX);
+        const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
+        scanCtx.putImageData(line, x++, 0);
+        resolve();
+      };
     });
+  }
+  loadingOverlay.style.display = 'none';
+  scanCanvas.style.display = 'block';
+  scanMarkerWrapper.style.display = 'block';
+  scanMarkerWrapper.style.left = '0px';
+};
 
-    scanCanvas.addEventListener('touchstart', (e) => {
-      const rect = scanCanvas.getBoundingClientRect();
-      updateTimeFromMarker(e.touches[0].clientX - rect.left);
-    });
+function updateTimeFromMarker(x) {
+  const width = scanCanvas.width;
+  const percent = Math.max(0, Math.min(1, x / width));
+  const t = range[0] + percent * (range[1] - range[0]);
+  scanMarkerWrapper.style.left = `${percent * 100}%`;
+  timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+  return { x: percent * scanCanvas.width, t };
+}
 
-    markBtn.addEventListener('click', () => {
-      const { x, t } = updateTimeFromMarker(parseFloat(scanMarkerWrapper.style.left) / 100 * scanCanvas.width);
-      const line = document.createElement('div');
-      line.className = 'mark-line';
-      line.style.left = `${x}px`;
-      const label = document.createElement('div');
-      label.className = 'mark-label';
-      label.style.left = `${x - 15}px`;
-      label.innerText = t.toFixed(2);
-      canvasContainer.appendChild(line);
-      canvasContainer.appendChild(label);
-    });
+function enableMarkerDrag(wrapper) {
+  const rect = scanCanvas.getBoundingClientRect();
+  const onMouseMove = (e) => updateTimeFromMarker(e.clientX - rect.left);
+  const onTouchMove = (e) => updateTimeFromMarker(e.touches[0].clientX - rect.left);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', () => {
+    document.removeEventListener('mousemove', onMouseMove);
+  }, { once: true });
+  document.addEventListener('touchmove', onTouchMove);
+  document.addEventListener('touchend', () => {
+    document.removeEventListener('touchmove', onTouchMove);
+  }, { once: true });
+}
+
+scanMarkerWrapper.addEventListener('mousedown', () => enableMarkerDrag(scanMarkerWrapper));
+scanMarkerWrapper.addEventListener('touchstart', () => enableMarkerDrag(scanMarkerWrapper));
+
+scanCanvas.addEventListener('click', (e) => {
+  const rect = scanCanvas.getBoundingClientRect();
+  updateTimeFromMarker(e.clientX - rect.left);
+});
+
+scanCanvas.addEventListener('touchstart', (e) => {
+  const rect = scanCanvas.getBoundingClientRect();
+  updateTimeFromMarker(e.touches[0].clientX - rect.left);
+});
+
+markBtn.addEventListener('click', () => {
+  const { x, t } = updateTimeFromMarker(parseFloat(scanMarkerWrapper.style.left) / 100 * scanCanvas.width);
+  const line = document.createElement('div');
+  line.className = 'mark-line';
+  line.style.left = `${x}px`;
+  const label = document.createElement('div');
+  label.className = 'mark-label';
+  label.style.left = `${x - 15}px`;
+  label.innerText = t.toFixed(2);
+  canvasContainer.appendChild(line);
+  canvasContainer.appendChild(label);
+});
   </script>
 </body>
 </html>
