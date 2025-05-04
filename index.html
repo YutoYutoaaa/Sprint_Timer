@@ -16,7 +16,7 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 30px; /* ユーザーがタップしやすい幅 */
+      width: 30px;
       left: 50%;
       transform: translateX(-50%);
       cursor: ew-resize;
@@ -33,7 +33,12 @@
       pointer-events: none;
     }
     #controls {
-      margin: 8px 0;
+      margin: 12px 0;
+    }
+    button {
+      font-size: 20px;
+      padding: 12px 24px;
+      margin-right: 8px;
     }
   </style>
 </head>
@@ -68,9 +73,8 @@
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
 
-    let guideX = 0.5; // 初期位置：中央
+    let guideX = 0.5;
 
-    // 動画アップロード
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -79,11 +83,9 @@
       }
     });
 
-    // 再生・停止ボタン
     playBtn.addEventListener('click', () => video.play());
     pauseBtn.addEventListener('click', () => video.pause());
 
-    // 判定ラインのドラッグ移動
     let dragging = false;
 
     const updateGuideLine = (x, rect) => {
@@ -120,14 +122,13 @@
 
     document.addEventListener('touchend', () => dragging = false);
 
-    // 判定処理
     processButton.addEventListener('click', async () => {
       if (!video.duration || video.readyState < 2) {
         alert("動画を読み込んでください。");
         return;
       }
 
-      const fps = 240; // 仮のフレームレート
+      const fps = 240;
       const totalFrames = Math.floor(video.duration * fps);
 
       const canvas = document.createElement('canvas');
