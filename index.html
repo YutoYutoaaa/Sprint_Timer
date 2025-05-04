@@ -47,10 +47,7 @@
   max-width: none;
 }
     #scanMarker-wrapper {
-  position: absolute; top: 0; bottom: 0; width: 30px;
-  transform: translateX(-50%); cursor: ew-resize; z-index: 20;
   display: none;
-  pointer-events: auto;
 }
     #scanMarker-line {
       width: 4px; background: yellow; height: 100%; margin: 0 auto;
@@ -182,7 +179,7 @@ processButton.onclick = async () => {
   tempCanvas.width = video.videoWidth;
   tempCanvas.height = video.videoHeight;
   const tempCtx = tempCanvas.getContext('2d');
-  scanCanvas.width = Math.ceil((endFrame - startFrame) / step);
+  scanCanvas.width = Math.ceil((endFrame - startFrame) / step) * 2;
   scanCanvas.height = video.videoHeight;
   const scanCtx = scanCanvas.getContext('2d');
   let x = 0;
