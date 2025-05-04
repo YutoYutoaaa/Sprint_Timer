@@ -2,166 +2,91 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅻ</title>
+  <title>Sprint Timer Web Var.I</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
-    * {
-      user-select: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-    }
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-      touch-action: manipulation;
-    }
-    h2 {
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-    #video-container {
-      position: relative;
-      max-width: 100%;
-      margin-bottom: 16px;
-    }
-    video {
-      width: 100%;
-      user-select: auto;
-    }
+    * { user-select: none; }
+    body { font-family: sans-serif; margin: 20px; }
+    h2 { font-size: 24px; margin-bottom: 12px; }
+    #video-container { position: relative; max-width: 100%; margin-bottom: 16px; }
+    video { width: 100%; user-select: auto; }
     #guide-wrapper {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      cursor: ew-resize;
-      touch-action: none;
-      z-index: 5;
+      position: absolute; top: 0; bottom: 0; width: 60px;
+      left: 50%; transform: translateX(-50%);
+      cursor: ew-resize; z-index: 5;
     }
     #guide-line {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 2px;
-      background-color: red;
-      transform: translateX(-50%);
+      position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+      background-color: red; transform: translateX(-50%);
       pointer-events: none;
     }
-    #controls, #slider-section {
-      margin: 12px 0;
-    }
-    #slider-section {
-      margin-bottom: 40px;
-    }
+    #controls, #slider-section { margin: 12px 0; }
     button, label.custom-file-upload {
-      font-size: 20px;
-      padding: 12px 24px;
-      margin-right: 8px;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      font-size: 20px; padding: 12px 24px; margin-right: 8px;
+      background: #eee; border: 1px solid #ccc; border-radius: 6px;
       cursor: pointer;
     }
-    input[type="file"] {
-      display: none;
-    }
+    input[type="file"] { display: none; }
     #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #333;
-      z-index: 999;
-      display: none;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(255, 255, 255, 0.8); display: flex; align-items: center;
+      justify-content: center; font-size: 24px; z-index: 999; display: none;
     }
     #canvas-container {
-      position: relative;
-      display: inline-block;
-      touch-action: none;
-      max-width: 100%;
-      overflow-x: auto;
+      position: relative; display: inline-block;
+      max-width: 100%; overflow-x: auto;
     }
     #scanCanvas {
-      display: block;
-      max-height: 300px;
-      width: 300%;
+      display: block; max-height: 300px; width: 300%;
     }
     #scanMarker-wrapper {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 30px;
-      transform: translateX(-50%);
-      cursor: ew-resize;
-      z-index: 20;
+      position: absolute; top: 0; bottom: 0; width: 30px;
+      transform: translateX(-50%); cursor: ew-resize; z-index: 20;
       display: none;
-      touch-action: none;
     }
     #scanMarker-line {
-      width: 4px;
-      background: yellow;
-      height: 100%;
-      margin: 0 auto;
+      width: 4px; background: yellow; height: 100%; margin: 0 auto;
     }
     .mark-line {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: white;
-      z-index: 19;
+      position: absolute; top: 0; bottom: 0; width: 2px; background: white; z-index: 19;
     }
     .mark-label {
-      position: absolute;
-      top: -20px;
-      font-size: 14px;
-      color: white;
+      position: absolute; top: -20px; font-size: 14px; color: white;
       text-shadow: 1px 1px 2px black;
     }
-    #timeDisplay {
-      margin-top: 8px;
-      font-size: 18px;
-    }
+    #timeDisplay { margin-top: 8px; font-size: 18px; }
   </style>
 </head>
 <body>
-  <h2>Sprint Timer Web <strong>Var.Ⅻ</strong></h2>
-  <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
-  <input type="file" id="fileInput" accept="video/*">
-  <div id="video-container">
-    <video id="video" controls muted playsinline webkit-playsinline></video>
-    <div id="guide-wrapper">
-      <div id="guide-line"></div>
-    </div>
+<h2>Sprint Timer Web <strong>Var.I</strong></h2>
+<label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
+<input type="file" id="fileInput" accept="video/*">
+<div id="video-container">
+  <video id="video" controls muted playsinline webkit-playsinline></video>
+  <div id="guide-wrapper">
+    <div id="guide-line"></div>
   </div>
-  <div id="controls">
-    <button id="playBtn">▶ 再生</button>
-    <button id="pauseBtn">⏸ 停止</button>
-    <button id="process">判定開始</button>
+</div>
+<div id="controls">
+  <button id="playBtn">▶ 再生</button>
+  <button id="pauseBtn">⏸ 停止</button>
+  <button id="process">判定開始</button>
+</div>
+<div id="slider-section">
+  <div id="rangeSlider"></div>
+  <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
+</div>
+<div id="canvas-container">
+  <canvas id="scanCanvas"></canvas>
+  <div id="scanMarker-wrapper">
+    <div id="scanMarker-line"></div>
   </div>
-  <div id="slider-section">
-    <div id="rangeSlider"></div>
-    <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
-  </div>
-  <div id="canvas-container">
-    <canvas id="scanCanvas"></canvas>
-    <div id="scanMarker-wrapper">
-      <div id="scanMarker-line"></div>
-    </div>
-  </div>
-  <div id="timeDisplay"></div>
-  <button id="markBtn">📍 記録</button>
-  <div id="output"></div>
-  <div id="loadingOverlay">判定中... しばらくお待ちください</div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+</div>
+<div id="timeDisplay"></div>
+<button id="markBtn">📍 記録</button>
+<div id="output"></div>
+<div id="loadingOverlay">判定中... しばらくお待ちください</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
 <script>
 const fileInput = document.getElementById('fileInput');
 const video = document.getElementById('video');
@@ -217,30 +142,24 @@ const updateGuideLine = (x, rect) => {
   guideX = ratio;
 };
 
-guideWrapper.addEventListener('mousedown', e => {
-  dragging = true;
-  const rect = video.getBoundingClientRect();
-  updateGuideLine(e.clientX - rect.left, rect);
-});
-document.addEventListener('mousemove', e => {
-  if (dragging) {
+['mousedown', 'touchstart'].forEach(evt => {
+  guideWrapper.addEventListener(evt, e => {
+    dragging = true;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const rect = video.getBoundingClientRect();
-    updateGuideLine(e.clientX - rect.left, rect);
-  }
+    updateGuideLine(clientX - rect.left, rect);
+  });
+});
+['mousemove', 'touchmove'].forEach(evt => {
+  document.addEventListener(evt, e => {
+    if (dragging) {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const rect = video.getBoundingClientRect();
+      updateGuideLine(clientX - rect.left, rect);
+    }
+  });
 });
 document.addEventListener('mouseup', () => dragging = false);
-
-guideWrapper.addEventListener('touchstart', e => {
-  dragging = true;
-  const rect = video.getBoundingClientRect();
-  updateGuideLine(e.touches[0].clientX - rect.left, rect);
-});
-document.addEventListener('touchmove', e => {
-  if (dragging) {
-    const rect = video.getBoundingClientRect();
-    updateGuideLine(e.touches[0].clientX - rect.left, rect);
-  }
-});
 document.addEventListener('touchend', () => dragging = false);
 
 processButton.onclick = async () => {
@@ -288,15 +207,17 @@ function updateTimeFromMarker(x) {
 
 function enableMarkerDrag(wrapper) {
   const rect = scanCanvas.getBoundingClientRect();
-  const onMouseMove = (e) => updateTimeFromMarker(e.clientX - rect.left);
-  const onTouchMove = (e) => updateTimeFromMarker(e.touches[0].clientX - rect.left);
-  document.addEventListener('mousemove', onMouseMove);
+  const onMove = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    updateTimeFromMarker(clientX - rect.left);
+  };
+  document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', () => {
-    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mousemove', onMove);
   }, { once: true });
-  document.addEventListener('touchmove', onTouchMove);
+  document.addEventListener('touchmove', onMove);
   document.addEventListener('touchend', () => {
-    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchmove', onMove);
   }, { once: true });
 }
 
