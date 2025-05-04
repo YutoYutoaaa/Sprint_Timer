@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅳ</title>
+  <title>Sprint Timer Web Var.Ⅴ</title>
   <style>
     #video-container {
       position: relative;
@@ -56,20 +56,19 @@
       z-index: 999;
       display: none;
     }
-    #rangeInputs {
+    #rangeSliderContainer {
+      display: none;
       margin: 10px 0;
-      font-size: 18px;
+      width: 100%;
     }
-    #rangeInputs input {
-      width: 80px;
-      font-size: 16px;
-      margin-right: 10px;
+    input[type=range] {
+      width: 100%;
     }
   </style>
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅳ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅴ</strong></h2>
 
   <input type="file" id="fileInput" accept="video/*">
   <div id="video-container">
@@ -79,15 +78,17 @@
     </div>
   </div>
 
-  <div id="rangeInputs">
-    計測開始秒数: <input type="number" id="startTime" value="0" step="0.1"> 秒
-    計測終了秒数: <input type="number" id="endTime" value="5" step="0.1"> 秒
-  </div>
-
   <div id="controls">
     <button id="playBtn">▶ 再生</button>
     <button id="pauseBtn">⏸ 停止</button>
+    <button id="rangeMode">🪄 判定範囲モード</button>
     <button id="process">判定開始</button>
+  </div>
+
+  <div id="rangeSliderContainer">
+    <label>判定範囲：</label>
+    <input type="range" id="startRange" min="0" max="100" value="0" step="0.1">
+    <input type="range" id="endRange" min="0" max="100" value="5" step="0.1">
   </div>
 
   <canvas id="scanCanvas" style="display:none;"></canvas>
@@ -104,10 +105,14 @@
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    const startTimeInput = document.getElementById('startTime');
-    const endTimeInput = document.getElementById('endTime');
+    const rangeModeBtn = document.getElementById('rangeMode');
+    const rangeSliderContainer = document.getElementById('rangeSliderContainer');
+    const startRange = document.getElementById('startRange');
+    const endRange = document.getElementById('endRange');
 
     let guideX = 0.5;
+    let dragging = false;
+    let duration = 0;
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -115,15 +120,20 @@
         const url = URL.createObjectURL(file);
         video.src = url;
         video.load();
-        video.play();
-        video.pause();
+        video.onloadedmetadata = () => {
+          duration = video.duration;
+          startRange.max = duration;
+          endRange.max = duration;
+          endRange.value = Math.min(duration, 5);
+        };
       }
     });
 
     playBtn.addEventListener('click', () => video.play());
     pauseBtn.addEventListener('click', () => video.pause());
-
-    let dragging = false;
+    rangeModeBtn.addEventListener('click', () => {
+      rangeSliderContainer.style.display = rangeSliderContainer.style.display === 'none' ? 'block' : 'none';
+    });
 
     const updateGuideLine = (x, rect) => {
       const ratio = Math.max(0, Math.min(1, x / rect.width));
@@ -136,8 +146,8 @@
       playBtn.disabled = !enabled;
       pauseBtn.disabled = !enabled;
       fileInput.disabled = !enabled;
-      startTimeInput.disabled = !enabled;
-      endTimeInput.disabled = !enabled;
+      startRange.disabled = !enabled;
+      endRange.disabled = !enabled;
     };
 
     guideWrapper.addEventListener('mousedown', (e) => {
@@ -145,13 +155,11 @@
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.clientX - rect.left, rect);
     });
-
     document.addEventListener('mousemove', (e) => {
       if (!dragging) return;
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.clientX - rect.left, rect);
     });
-
     document.addEventListener('mouseup', () => dragging = false);
 
     guideWrapper.addEventListener('touchstart', (e) => {
@@ -159,14 +167,19 @@
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.touches[0].clientX - rect.left, rect);
     });
-
     document.addEventListener('touchmove', (e) => {
       if (!dragging) return;
       const rect = video.getBoundingClientRect();
       updateGuideLine(e.touches[0].clientX - rect.left, rect);
     });
-
     document.addEventListener('touchend', () => dragging = false);
+
+    // 範囲スライダーに合わせて動画の該当シーンを表示
+    [startRange, endRange].forEach(slider => {
+      slider.addEventListener('input', () => {
+        video.currentTime = parseFloat(slider.value);
+      });
+    });
 
     processButton.addEventListener('click', async () => {
       if (!video.duration || video.readyState < 2) {
@@ -174,10 +187,10 @@
         return;
       }
 
-      const startTime = parseFloat(startTimeInput.value);
-      const endTime = parseFloat(endTimeInput.value);
+      const startTime = parseFloat(startRange.value);
+      const endTime = parseFloat(endRange.value);
       if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime || startTime < 0 || endTime > video.duration) {
-        alert("正しい時間範囲を入力してください。");
+        alert("正しい時間範囲を指定してください。");
         return;
       }
 
@@ -213,9 +226,8 @@
 
       loadingOverlay.style.display = 'none';
       enableInteraction(true);
-
       scanCanvas.style.display = 'block';
-      output.innerHTML = `<p>ラインスキャン画像が生成されました。(${startTime}秒 ～ ${endTime}秒)</p>`;
+      output.innerHTML = `<p>ラインスキャン画像が生成されました（${startTime}秒 ～ ${endTime}秒）。</p>`;
     });
   </script>
 </body>
