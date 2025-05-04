@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅱ</title>
+  <title>Sprint Timer Web Var.Ⅲ</title>
   <style>
     #video-container {
       position: relative;
@@ -21,6 +21,7 @@
       transform: translateX(-50%);
       cursor: ew-resize;
       touch-action: none;
+      z-index: 2;
     }
     #guide-line {
       position: absolute;
@@ -40,11 +41,26 @@
       padding: 12px 24px;
       margin-right: 8px;
     }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #333;
+      z-index: 999;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅱ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅲ</strong></h2>
 
   <input type="file" id="fileInput" accept="video/*">
   <div id="video-container">
@@ -63,6 +79,8 @@
   <canvas id="scanCanvas" style="display:none;"></canvas>
   <div id="output"></div>
 
+  <div id="loadingOverlay">判定中... しばらくお待ちください</div>
+
   <script>
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
@@ -72,6 +90,7 @@
     const output = document.getElementById('output');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     let guideX = 0.5;
 
@@ -94,10 +113,19 @@
       guideX = ratio;
     };
 
+    const enableInteraction = (enabled) => {
+      guideWrapper.style.pointerEvents = enabled ? 'auto' : 'none';
+      playBtn.disabled = !enabled;
+      pauseBtn.disabled = !enabled;
+      fileInput.disabled = !enabled;
+    };
+
     guideWrapper.addEventListener('mousedown', (e) => {
-      dragging = true;
-      const rect = video.getBoundingClientRect();
-      updateGuideLine(e.clientX - rect.left, rect);
+      if (!dragging) {
+        dragging = true;
+        const rect = video.getBoundingClientRect();
+        updateGuideLine(e.clientX - rect.left, rect);
+      }
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -128,6 +156,9 @@
         return;
       }
 
+      loadingOverlay.style.display = 'flex';
+      enableInteraction(false);
+
       const fps = 240;
       const totalFrames = Math.floor(video.duration * fps);
 
@@ -153,6 +184,9 @@
           };
         });
       }
+
+      loadingOverlay.style.display = 'none';
+      enableInteraction(true);
 
       scanCanvas.style.display = 'block';
       output.innerHTML = "<p>ラインスキャン画像が生成されました。</p>";
