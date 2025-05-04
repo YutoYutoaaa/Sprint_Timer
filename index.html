@@ -5,6 +5,7 @@
   <title>Sprint Timer Web Var.I</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
+    html, body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
     * { user-select: none; }
     body { font-family: sans-serif; margin: 20px; }
     h2 { font-size: 24px; margin-bottom: 12px; }
@@ -212,9 +213,10 @@ function updateTimeFromMarker(x) {
 
 function enableMarkerDrag(wrapper) {
   const rect = scanCanvas.getBoundingClientRect();
+    const offsetX = e.touches ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
   const onMove = (e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    updateTimeFromMarker(clientX - rect.left);
+    updateTimeFromMarker(offsetX);
   };
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', () => {
