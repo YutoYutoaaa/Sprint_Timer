@@ -2,264 +2,312 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅶ</title>
+  <title>Sprint Timer Web Var.Ⅸ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
-    html, body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
-    * { user-select: none; }
-    body { font-family: sans-serif; margin: 20px; }
-    h2 { font-size: 24px; margin-bottom: 12px; }
-    #video-container { position: relative; max-width: 100%; margin-bottom: 16px; }
-    video { width: 100%; user-select: auto; }
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #video-container {
+      position: relative;
+      max-width: 100%;
+      margin-bottom: 16px;
+    }
+    video {
+      width: 100%;
+    }
     #guide-wrapper {
-      position: absolute; top: 0; bottom: 0; width: 60px;
-      left: 50%; transform: translateX(-50%);
-      cursor: ew-resize; z-index: 5;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+      touch-action: none;
+      z-index: 2;
     }
     #guide-line {
-      position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
-      background-color: red; transform: translateX(-50%);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background-color: red;
+      transform: translateX(-50%);
       pointer-events: none;
     }
-    #controls, #slider-section { margin: 12px 0; }
+    #controls, #slider-section {
+      margin: 12px 0;
+    }
     button, label.custom-file-upload {
-      font-size: 20px; padding: 12px 24px; margin-right: 8px;
-      background: #eee; border: 1px solid #ccc; border-radius: 6px;
+      font-size: 20px;
+      padding: 12px 24px;
+      margin-right: 8px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 6px;
       cursor: pointer;
     }
-    input[type="file"] { display: none; }
+    input[type="file"] {
+      display: none;
+    }
     #loadingOverlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(255, 255, 255, 0.8); display: flex; align-items: center;
-      justify-content: center; font-size: 24px; z-index: 999; display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #333;
+      z-index: 999;
+      display: none;
     }
     #canvas-container {
-  position: relative;
-  display: inline-block;
-  overflow-x: auto;
-  white-space: nowrap;
-  width: 100%;
-}
-    #scanCanvas {
-  display: block;
-  height: auto;
-  width: 300%;
-  max-width: none;
-}
+      position: relative;
+      display: inline-block;
+    }
     #scanMarker-wrapper {
-  display: none;
-}
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 30px;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+      z-index: 20;
+      display: none;
+      touch-action: none;
+    }
     #scanMarker-line {
-      width: 4px; background: yellow; height: 100%; margin: 0 auto;
+      width: 4px;
+      background: yellow;
+      height: 100%;
+      margin: 0 auto;
     }
     .mark-line {
-      position: absolute; top: 0; bottom: 0; width: 2px; background: white; z-index: 19;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: white;
+      z-index: 19;
     }
     .mark-label {
-      position: absolute; top: -20px; font-size: 14px; color: white;
+      position: absolute;
+      top: -20px;
+      font-size: 14px;
+      color: white;
       text-shadow: 1px 1px 2px black;
     }
-    #timeDisplay { margin-top: 8px; font-size: 18px; }
+    #timeDisplay {
+      margin-top: 8px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-<h2>Sprint Timer Web <strong>Var.Ⅷ</strong></h2>
-<label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
-<input type="file" id="fileInput" accept="video/*">
-<div id="video-container">
-  <video id="video" controls disablePictureInPicture muted playsinline webkit-playsinline preload="metadata"></video>
-  <div id="guide-wrapper">
-    <div id="guide-line"></div>
+
+  <h2>Sprint Timer Web <strong>Var.Ⅸ</strong></h2>
+
+  <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
+  <input type="file" id="fileInput" accept="video/*">
+
+  <div id="video-container">
+    <video id="video" controls muted></video>
+    <div id="guide-wrapper">
+      <div id="guide-line"></div>
+    </div>
   </div>
-</div>
-<div id="controls">
-  <button id="playBtn">▶ 再生</button>
-  <button id="pauseBtn">⏸ 停止</button>
-  <button id="process">判定開始</button>
-</div>
-<div id="slider-section">
-  <div id="rangeSlider"></div>
-  <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
-</div>
-<div id="canvas-container">
-  <canvas id="scanCanvas"></canvas>
-  <div id="scanMarker-wrapper">
-    <div id="scanMarker-line"></div>
+
+  <div id="controls">
+    <button id="playBtn">▶ 再生</button>
+    <button id="pauseBtn">⏸ 停止</button>
+    <button id="process">判定開始</button>
   </div>
-</div>
-<div id="timeDisplay"></div>
-<button id="markBtn">📍 記録</button>
-<div id="output"></div>
-<div id="loadingOverlay">判定中... しばらくお待ちください</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-<script>
-const fileInput = document.getElementById('fileInput');
-const video = document.getElementById('video');
-const guideWrapper = document.getElementById('guide-wrapper');
-const playBtn = document.getElementById('playBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const processButton = document.getElementById('process');
-const scanCanvas = document.getElementById('scanCanvas');
-const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
-const timeDisplay = document.getElementById('timeDisplay');
-const rangeSlider = document.getElementById('rangeSlider');
-const rangeText = document.getElementById('rangeText');
-const markBtn = document.getElementById('markBtn');
-const canvasContainer = document.getElementById('canvas-container');
-const loadingOverlay = document.getElementById('loadingOverlay');
 
-let guideX = 0.5;
-let videoDuration = 0;
-let range = [0, 5];
-let slider;
+  <div id="slider-section">
+    <div id="rangeSlider"></div>
+    <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
+  </div>
 
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const url = URL.createObjectURL(file);
-    video.src = url;
-    video.load();
-    video.onloadedmetadata = () => {
-      videoDuration = video.duration;
-      if (slider) slider.destroy();
-      slider = noUiSlider.create(rangeSlider, {
-        start: [0, Math.min(5, videoDuration)],
-        connect: true,
-        range: { min: 0, max: videoDuration },
-        step: 0.01,
-      });
-      slider.on('update', (values, handle) => {
-        range = values.map(parseFloat);
-        rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-        if (video.readyState >= 1) video.currentTime = range[handle];
-      });
-    };
-  }
-});
+  <div id="canvas-container">
+    <canvas id="scanCanvas"></canvas>
+    <div id="scanMarker-wrapper">
+      <div id="scanMarker-line"></div>
+    </div>
+  </div>
+  <div id="timeDisplay"></div>
+  <button id="markBtn">📍 記録</button>
 
-playBtn.onclick = () => video.play();
-pauseBtn.onclick = () => video.pause();
+  <div id="output"></div>
+  <div id="loadingOverlay">判定中... しばらくお待ちください</div>
 
-let dragging = false;
-const updateGuideLine = (x, rect) => {
-  const ratio = Math.max(0, Math.min(1, x / rect.width));
-  guideWrapper.style.left = `${ratio * 100}%`;
-  guideX = ratio;
-};
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const video = document.getElementById('video');
+    const guideWrapper = document.getElementById('guide-wrapper');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const processButton = document.getElementById('process');
+    const scanCanvas = document.getElementById('scanCanvas');
+    const scanMarkerWrapper = document.getElementById('scanMarker-wrapper');
+    const scanMarkerLine = document.getElementById('scanMarker-line');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const output = document.getElementById('output');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const rangeSlider = document.getElementById('rangeSlider');
+    const rangeText = document.getElementById('rangeText');
+    const markBtn = document.getElementById('markBtn');
+    const canvasContainer = document.getElementById('canvas-container');
 
-['mousedown', 'touchstart'].forEach(evt => {
-  guideWrapper.addEventListener(evt, e => {
-    dragging = true;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const rect = video.getBoundingClientRect();
-    updateGuideLine(clientX - rect.left, rect);
-  });
-});
-['mousemove', 'touchmove'].forEach(evt => {
-  document.addEventListener(evt, e => {
-    if (dragging) {
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const rect = video.getBoundingClientRect();
-      updateGuideLine(clientX - rect.left, rect);
-    }
-  });
-});
-document.addEventListener('mouseup', () => dragging = false);
-document.addEventListener('touchend', () => dragging = false);
+    let guideX = 0.5;
+    let videoDuration = 0;
+    let range = [0, 5];
+    let slider;
 
-processButton.onclick = async () => {
-  if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
-  const fps = 100;
-  const step = 1;
-  const [startTime, endTime] = range;
-  const startFrame = Math.floor(startTime * fps);
-  const endFrame = Math.floor(endTime * fps);
-  loadingOverlay.style.display = 'flex';
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = video.videoWidth;
-  tempCanvas.height = video.videoHeight;
-  const tempCtx = tempCanvas.getContext('2d');
-  scanCanvas.width = Math.ceil((endFrame - startFrame) / step) * 2;
-  scanCanvas.height = video.videoHeight;
-  const scanCtx = scanCanvas.getContext('2d');
-  let x = 0;
-  for (let i = startFrame; i < endFrame; i += step) {
-    await new Promise(resolve => {
-      video.currentTime = i / fps;
-      video.onseeked = () => {
-        tempCtx.drawImage(video, 0, 0);
-        const guideXpx = Math.floor(tempCanvas.width * guideX);
-        const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-        scanCtx.putImageData(line, x++, 0);
-        resolve();
-      };
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        video.load();
+        video.onloadedmetadata = () => {
+          videoDuration = video.duration;
+          if (slider) slider.destroy();
+          slider = noUiSlider.create(rangeSlider, {
+            start: [0, Math.min(5, videoDuration)],
+            connect: true,
+            range: { min: 0, max: videoDuration },
+            step: 0.01,
+          });
+          slider.on('update', (values, handle) => {
+            range = values.map(parseFloat);
+            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+            video.currentTime = range[handle];
+          });
+        };
+      }
     });
-  }
-  loadingOverlay.style.display = 'none';
-  scanCanvas.style.display = 'block';
-  scanMarkerWrapper.style.display = 'block';
-  scanMarkerWrapper.style.left = '0px';
 
-  // 判定後はインタラクションを無効化
-  scanCanvas.style.pointerEvents = 'none';
-  scanMarkerWrapper.style.pointerEvents = 'none';
-};
-};
+    playBtn.onclick = () => video.play();
+    pauseBtn.onclick = () => video.pause();
 
-function updateTimeFromMarker(x) {
-  const canvasLeft = scanCanvas.getBoundingClientRect().left;
-  const containerLeft = canvasContainer.getBoundingClientRect().left;
-  const scrollOffset = canvasContainer.scrollLeft;
-  const relativeX = x + scrollOffset - (canvasLeft - containerLeft);
-  const width = scanCanvas.width;
-  const percent = Math.max(0, Math.min(1, relativeX / width));
-  const t = range[0] + percent * (range[1] - range[0]);
-  scanMarkerWrapper.style.left = `${percent * 100}%`;
-  timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-  return { x: percent * width, t };
-}
+    let dragging = false;
+    const updateGuideLine = (x, rect) => {
+      const ratio = Math.max(0, Math.min(1, x / rect.width));
+      guideWrapper.style.left = `${ratio * 100}%`;
+      guideX = ratio;
+    };
+    guideWrapper.onmousedown = e => {
+      dragging = true;
+      const rect = video.getBoundingClientRect();
+      updateGuideLine(e.clientX - rect.left, rect);
+    };
+    document.onmousemove = e => {
+      if (dragging) {
+        const rect = video.getBoundingClientRect();
+        updateGuideLine(e.clientX - rect.left, rect);
+      }
+    };
+    document.onmouseup = () => dragging = false;
 
-function enableMarkerDrag(wrapper) {
-  const onMove = (e) => {
-    const rect = scanCanvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    updateTimeFromMarker(clientX - rect.left);
-  };
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', () => {
-    document.removeEventListener('mousemove', onMove);
-  }, { once: true });
-  document.addEventListener('touchmove', onMove);
-  document.addEventListener('touchend', () => {
-    document.removeEventListener('touchmove', onMove);
-  }, { once: true });
-}
+    processButton.onclick = async () => {
+      if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
 
-scanMarkerWrapper.addEventListener('mousedown', () => enableMarkerDrag(scanMarkerWrapper));
-scanMarkerWrapper.addEventListener('touchstart', () => enableMarkerDrag(scanMarkerWrapper));
+      const fps = 240;
+      const [startTime, endTime] = range;
+      const startFrame = Math.floor(startTime * fps);
+      const endFrame = Math.floor(endTime * fps);
 
-scanCanvas.addEventListener('click', (e) => {
-  const rect = scanCanvas.getBoundingClientRect();
-  updateTimeFromMarker(e.clientX - rect.left);
-});
+      loadingOverlay.style.display = 'flex';
 
-scanCanvas.addEventListener('touchstart', (e) => {
-  const rect = scanCanvas.getBoundingClientRect();
-  updateTimeFromMarker(e.touches[0].clientX - rect.left);
-});
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      const tempCtx = tempCanvas.getContext('2d');
 
-markBtn.addEventListener('click', () => {
-  const { x, t } = updateTimeFromMarker(parseFloat(scanMarkerWrapper.style.left) / 100 * scanCanvas.width);
-  const line = document.createElement('div');
-  line.className = 'mark-line';
-  line.style.left = `${x}px`;
-  const label = document.createElement('div');
-  label.className = 'mark-label';
-  label.style.left = `${x - 15}px`;
-  label.innerText = t.toFixed(2);
-  canvasContainer.appendChild(line);
-  canvasContainer.appendChild(label);
-});
-</script>
+      scanCanvas.width = endFrame - startFrame;
+      scanCanvas.height = video.videoHeight;
+      const scanCtx = scanCanvas.getContext('2d');
+
+      for (let i = startFrame, x = 0; i < endFrame; i++, x++) {
+        await new Promise(resolve => {
+          video.currentTime = i / fps;
+          video.onseeked = () => {
+            tempCtx.drawImage(video, 0, 0);
+            const guideXpx = Math.floor(tempCanvas.width * guideX);
+            const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
+            scanCtx.putImageData(line, x, 0);
+            resolve();
+          };
+        });
+      }
+
+      loadingOverlay.style.display = 'none';
+      scanCanvas.style.display = 'block';
+      scanMarkerWrapper.style.display = 'block';
+      scanMarkerWrapper.style.left = '0px';
+    };
+
+    function updateTimeFromMarker(x) {
+      const width = scanCanvas.width;
+      const percent = Math.max(0, Math.min(1, x / width));
+      const t = range[0] + percent * (range[1] - range[0]);
+      scanMarkerWrapper.style.left = `${percent * 100}%`;
+      timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+      return { x: percent * scanCanvas.width, t };
+    }
+
+    function enableMarkerDrag(wrapper) {
+      const rect = scanCanvas.getBoundingClientRect();
+
+      const onMouseMove = (e) => updateTimeFromMarker(e.clientX - rect.left);
+      const onTouchMove = (e) => updateTimeFromMarker(e.touches[0].clientX - rect.left);
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', onMouseMove);
+      }, { once: true });
+
+      document.addEventListener('touchmove', onTouchMove);
+      document.addEventListener('touchend', () => {
+        document.removeEventListener('touchmove', onTouchMove);
+      }, { once: true });
+    }
+
+    scanMarkerWrapper.addEventListener('mousedown', () => enableMarkerDrag(scanMarkerWrapper));
+    scanMarkerWrapper.addEventListener('touchstart', () => enableMarkerDrag(scanMarkerWrapper));
+
+    scanCanvas.addEventListener('click', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.clientX - rect.left);
+    });
+
+    scanCanvas.addEventListener('touchstart', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.touches[0].clientX - rect.left);
+    });
+
+    markBtn.addEventListener('click', () => {
+      const { x, t } = updateTimeFromMarker(parseFloat(scanMarkerWrapper.style.left) / 100 * scanCanvas.width);
+      const line = document.createElement('div');
+      line.className = 'mark-line';
+      line.style.left = `${x}px`;
+
+      const label = document.createElement('div');
+      label.className = 'mark-label';
+      label.style.left = `${x - 15}px`;
+      label.innerText = t.toFixed(2);
+
+      canvasContainer.appendChild(line);
+      canvasContainer.appendChild(label);
+    });
+  </script>
 </body>
 </html>
