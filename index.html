@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.ⅩⅤ</title>
+  <title>Sprint Timer Web Var.ⅩⅥ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -92,6 +92,7 @@
       cursor: ew-resize;
       z-index: 10;
       display: none;
+      touch-action: none;
     }
     #timeDisplay {
       margin-top: 8px;
@@ -101,7 +102,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.ⅩⅤ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.ⅩⅥ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -227,7 +228,7 @@
       tempCanvas.height = video.videoHeight;
       const tempCtx = tempCanvas.getContext('2d');
 
-      const frameWidth = 3; // 1フレームあたりの幅を3pxに
+      const frameWidth = 3;
       scanCanvas.width = (endFrame - startFrame) * frameWidth;
       scanCanvas.height = video.videoHeight;
       const scanCtx = scanCanvas.getContext('2d');
@@ -261,12 +262,16 @@
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
     }
 
-    scanMarker.addEventListener('mousedown', (e) => {
+    scanMarker.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
       const rect = scanCanvas.getBoundingClientRect();
-      const onMove = (ev) => updateTimeFromMarker(ev.clientX - rect.left);
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', () => {
-        document.removeEventListener('mousemove', onMove);
+      const onMove = (ev) => {
+        const clientX = ev.clientX || (ev.touches && ev.touches[0].clientX);
+        updateTimeFromMarker(clientX - rect.left);
+      };
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', () => {
+        document.removeEventListener('pointermove', onMove);
       }, { once: true });
     });
 
