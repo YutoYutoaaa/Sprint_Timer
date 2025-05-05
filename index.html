@@ -1,10 +1,10 @@
-var16*
+var17.1
 
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.ⅩⅥ</title>
+  <title>Sprint Timer Web v17.1</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -43,9 +43,6 @@ var16*
       background-color: red;
       transform: translateX(-50%);
     }
-    #guide-buttons {
-      margin-top: 12px;
-    }
     #guide-buttons button {
       font-size: 28px;
       padding: 18px 32px;
@@ -81,8 +78,13 @@ var16*
       z-index: 999;
       display: none;
     }
-    #canvas-container {
+    #canvas-scroll-container {
+      overflow-x: scroll;
+      white-space: nowrap;
       position: relative;
+      border: 1px solid #ccc;
+    }
+    #scanCanvas {
       display: inline-block;
     }
     #scanMarker {
@@ -91,10 +93,10 @@ var16*
       bottom: 0;
       width: 4px;
       background: yellow;
-      cursor: ew-resize;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
-      display: none;
-      touch-action: none;
+      pointer-events: none;
     }
     #timeDisplay {
       margin-top: 8px;
@@ -104,7 +106,7 @@ var16*
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.ⅩⅥ</strong></h2>
+  <h2>Sprint Timer Web <strong>v17.1</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -120,10 +122,6 @@ var16*
     <button id="playBtn">▶ 再生</button>
     <button id="pauseBtn">⏸ 停止</button>
     <button id="process">判定開始</button>
-    <div id="guide-buttons" style="display:inline-block">
-      <button id="moveLeft">←</button>
-      <button id="moveRight">→</button>
-    </div>
   </div>
 
   <div id="slider-section">
@@ -131,10 +129,11 @@ var16*
     <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
   </div>
 
-  <div id="canvas-container">
+  <div id="canvas-scroll-container">
     <canvas id="scanCanvas"></canvas>
     <div id="scanMarker"></div>
   </div>
+
   <div id="timeDisplay"></div>
 
   <div id="output"></div>
@@ -144,50 +143,21 @@ var16*
   <script>
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
-    const guideWrapper = document.getElementById('guide-wrapper');
-    const guideLine = document.getElementById('guide-line');
-    const moveLeft = document.getElementById('moveLeft');
-    const moveRight = document.getElementById('moveRight');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const scanMarker = document.getElementById('scanMarker');
     const timeDisplay = document.getElementById('timeDisplay');
-    const output = document.getElementById('output');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
+    const scrollContainer = document.getElementById('canvas-scroll-container');
 
     let guideX = 0.5;
     let videoDuration = 0;
     let range = [0, 5];
     let slider;
-    let moveInterval;
-    let dragging = false;
-
-    function updateGuidePosition() {
-      guideWrapper.style.left = `${guideX * 100}%`;
-    }
-
-    function startMoving(direction) {
-      moveInterval = setInterval(() => {
-        guideX = Math.max(0, Math.min(1, guideX + direction * 0.005));
-        updateGuidePosition();
-      }, 50);
-    }
-
-    function stopMoving() {
-      clearInterval(moveInterval);
-    }
-
-    moveLeft.addEventListener('mousedown', () => startMoving(-1));
-    moveRight.addEventListener('mousedown', () => startMoving(1));
-    moveLeft.addEventListener('touchstart', () => startMoving(-1));
-    moveRight.addEventListener('touchstart', () => startMoving(1));
-    document.addEventListener('mouseup', stopMoving);
-    document.addEventListener('touchend', stopMoving);
-    document.addEventListener('mouseleave', stopMoving);
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -204,10 +174,9 @@ var16*
             range: { min: 0, max: videoDuration },
             step: 0.01,
           });
-          slider.on('update', (values, handle) => {
+          slider.on('update', (values) => {
             range = values.map(parseFloat);
             rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-            video.currentTime = range[handle];
           });
         };
       }
@@ -254,39 +223,14 @@ var16*
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
       scanMarker.style.display = 'block';
-      scanMarker.style.left = '0px';
     };
 
-    function updateTimeFromMarker(x) {
-      const width = scanCanvas.width;
-      const percent = Math.max(0, Math.min(1, x / width));
-      const t = range[0] + percent * (range[1] - range[0]);
-      scanMarker.style.left = `${percent * 100}%`;
+    scrollContainer.addEventListener('scroll', () => {
+      const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
+      const percent = centerX / scanCanvas.width;
+      const clamped = Math.max(0, Math.min(1, percent));
+      const t = range[0] + clamped * (range[1] - range[0]);
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-    }
-
-    scanMarker.addEventListener('pointerdown', (e) => {
-      dragging = true;
-      scanMarker.setPointerCapture(e.pointerId);
-    });
-
-    scanMarker.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const rect = scanCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      updateTimeFromMarker(x);
-    });
-
-    scanMarker.addEventListener('pointerup', () => dragging = false);
-    scanMarker.addEventListener('pointercancel', () => dragging = false);
-
-    scanCanvas.addEventListener('click', (e) => {
-      const rect = scanCanvas.getBoundingClientRect();
-      updateTimeFromMarker(e.clientX - rect.left);
-    });
-    scanCanvas.addEventListener('touchstart', (e) => {
-      const rect = scanCanvas.getBoundingClientRect();
-      updateTimeFromMarker(e.touches[0].clientX - rect.left);
     });
   </script>
 </body>
