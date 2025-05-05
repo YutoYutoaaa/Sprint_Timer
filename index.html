@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web v18.2</title>
+  <title>Sprint Timer Web v18.3</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -102,11 +102,6 @@
       z-index: 10;
       pointer-events: none;
     }
-    #timeDisplay {
-      margin-top: 8px;
-      font-size: 18px;
-    }
-
 .saved-marker {
   position: absolute;
   top: 0;
@@ -134,8 +129,18 @@
   height: 100%;
   pointer-events: none;
 }
-
-  </style>
+#timeDisplay {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 54px;  /* 約3倍に */
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 6px;
+  z-index: 20;
+}
+</style>
 </head>
 <body>
 
@@ -170,10 +175,10 @@
  </div>
     <div id="scanMarker"></div>
 <div id="markerContainer"></div>
-</div>
 <div id="timeDisplay"></div>
+</div>
 <button id="saveTimeBtn">📍 このタイムを記録</button>
-
+<div id="lapTimes" style="margin-top: 12px; font-size: 20px;"></div>
   <div id="output"></div>
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
 
@@ -328,6 +333,10 @@ const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
 
   markerContainer.appendChild(marker);
   markerContainer.appendChild(label);
+const lapTimes = document.getElementById('lapTimes');
+const newLap = document.createElement('div');
+newLap.textContent = `Lap: ${t.toFixed(3)} 秒`;
+lapTimes.appendChild(newLap);
 };
 
  function scrollToTime(t) {
