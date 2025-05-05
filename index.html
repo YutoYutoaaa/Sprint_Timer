@@ -274,7 +274,7 @@ document.addEventListener('mouseleave', stopMoving);
       const tempCtx = tempCanvas.getContext('2d');
 
       const frameWidth = 3;
-    const margin = 100;  // 左右に100pxずつ余白
+    const margin = 500;  // 左右に500pxずつ余白
 scanCanvas.width = (endFrame - startFrame) * frameWidth + margin * 2;
       scanCanvas.height = video.videoHeight;
       const scanCtx = scanCanvas.getContext('2d');
@@ -342,7 +342,7 @@ lapTimes.appendChild(newLap);
 
 function scrollToTime(t) {
   if (!scanCanvas || !range || !scrollContainer) return;
-  const margin = 100;
+  const margin = 500;
   const percent = (t - range[0]) / (range[1] - range[0]);
   const scrollX = percent * (scanCanvas.width - margin * 2) + margin - scrollContainer.clientWidth / 2;
   scrollContainer.scrollLeft = Math.max(0, scrollX);
