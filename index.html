@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web v17.2</title>
+  <title>Sprint Timer Web v17.3</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -40,11 +40,6 @@
       width: 4px;
       background-color: red;
       transform: translateX(-50%);
-    }
-    #guide-buttons button {
-      font-size: 28px;
-      padding: 18px 32px;
-      margin-left: 8px;
     }
     #controls, #slider-section {
       margin: 12px 0;
@@ -86,13 +81,13 @@
       display: inline-block;
     }
     #scanMarker {
-      position: fixed;
-      top: 300px; /* 調整必要: 表示位置に応じて変えてください */
+      position: absolute;
+      top: 0;
       left: 50%;
       transform: translateX(-50%);
       width: 4px;
-      height: 400px; /* 調整必要: scanCanvas 高さと一致させる */
       background: yellow;
+      height: 100%;
       z-index: 10;
       pointer-events: none;
     }
@@ -104,7 +99,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v17.2</strong></h2>
+  <h2>Sprint Timer Web <strong>v17.3</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -129,8 +124,8 @@
 
   <div id="canvas-scroll-container">
     <canvas id="scanCanvas"></canvas>
+    <div id="scanMarker"></div>
   </div>
-  <div id="scanMarker"></div>
 
   <div id="timeDisplay"></div>
 
@@ -221,6 +216,7 @@
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
       scanMarker.style.display = 'block';
+      scanMarker.style.height = scanCanvas.offsetHeight + 'px';
     };
 
     scrollContainer.addEventListener('scroll', () => {
