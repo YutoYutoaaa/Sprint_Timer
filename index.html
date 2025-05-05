@@ -1,3 +1,5 @@
+18.5
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -249,15 +251,11 @@ fileInput.addEventListener('change', (e) => {
         range: { min: 0, max: videoDuration },
         step: 0.01,
       });
+slider.on('update', (values, handle) => {
+  range = values.map(parseFloat);
+  rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
 
-      slider.on('update', (values) => {
-        range = values.map(parseFloat);
-        rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`; 
-      });
-
-slider.on('change', (values, handle) => {
-  const changedRange = values.map(parseFloat);
-  const targetTime = changedRange[handle];  // handle = 0 (左) or 1 (右)
+  const targetTime = range[handle];
   if (!isNaN(targetTime)) {
     video.currentTime = targetTime;
         }
