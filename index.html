@@ -1,5 +1,3 @@
-var17.1
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -51,6 +49,12 @@ var17.1
     #controls, #slider-section {
       margin: 12px 0;
     }
+    #guide-buttons button {
+  font-size: 28px;
+  padding: 18px 32px;
+  margin-left: 8px;
+}
+
     button, label.custom-file-upload {
       font-size: 28px;
       padding: 18px 32px;
@@ -122,6 +126,9 @@ var17.1
     <button id="playBtn">▶ 再生</button>
     <button id="pauseBtn">⏸ 停止</button>
     <button id="process">判定開始</button>
+    <div id="guide-buttons" style="display:inline-block">
+    <button id="moveLeft">←</button>
+    <button id="moveRight">→</button>
   </div>
 
   <div id="slider-section">
@@ -153,8 +160,38 @@ var17.1
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
     const scrollContainer = document.getElementById('canvas-scroll-container');
+    const guideWrapper = document.getElementById('guide-wrapper');
+const moveLeft = document.getElementById('moveLeft');
+const moveRight = document.getElementById('moveRight');
 
-    let guideX = 0.5;
+let guideX = 0.5;
+let moveInterval;
+
+function updateGuidePosition() {
+  guideWrapper.style.left = `${guideX * 100}%`;
+}
+
+function startMoving(direction) {
+  moveInterval = setInterval(() => {
+    guideX = Math.max(0, Math.min(1, guideX + direction * 0.005));
+    updateGuidePosition();
+  }, 50);
+}
+
+function stopMoving() {
+  clearInterval(moveInterval);
+}
+
+moveLeft.addEventListener('mousedown', () => startMoving(-1));
+moveRight.addEventListener('mousedown', () => startMoving(1));
+moveLeft.addEventListener('touchstart', () => startMoving(-1));
+moveRight.addEventListener('touchstart', () => startMoving(1));
+document.addEventListener('mouseup', stopMoving);
+document.addEventListener('touchend', stopMoving);
+document.addEventListener('mouseleave', stopMoving);
+
+
+    
     let videoDuration = 0;
     let range = [0, 5];
     let slider;
