@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.ⅩⅦ</title>
+  <title>Sprint Timer Web Var.ⅩⅧ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -102,7 +102,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.ⅩⅦ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.ⅩⅧ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -140,9 +140,45 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script>
+    const fileInput = document.getElementById('fileInput');
+    const video = document.getElementById('video');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const rangeSlider = document.getElementById('rangeSlider');
+    const rangeText = document.getElementById('rangeText');
     const scanMarker = document.getElementById('scanMarker');
     const scanCanvas = document.getElementById('scanCanvas');
     const timeDisplay = document.getElementById('timeDisplay');
+
+    let range = [0, 5];
+    let slider;
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        video.load();
+        video.onloadedmetadata = () => {
+          if (slider) slider.destroy();
+          slider = noUiSlider.create(rangeSlider, {
+            start: [0, Math.min(5, video.duration)],
+            connect: true,
+            range: { min: 0, max: video.duration },
+            step: 0.01,
+          });
+          slider.on('update', (values, handle) => {
+            range = values.map(parseFloat);
+            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+            video.currentTime = range[handle];
+          });
+        };
+      }
+    });
+
+    playBtn.onclick = () => video.play();
+    pauseBtn.onclick = () => video.pause();
+
     let dragging = false;
 
     scanMarker.addEventListener('pointerdown', (e) => {
