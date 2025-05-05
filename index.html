@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅹ</title>
+  <title>Sprint Timer Web Var.Ⅺ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     body {
@@ -24,8 +24,7 @@
       width: 60px;
       left: 50%;
       transform: translateX(-50%);
-      cursor: ew-resize;
-      touch-action: none;
+      pointer-events: none;
       z-index: 2;
     }
     #guide-line {
@@ -36,7 +35,17 @@
       width: 4px;
       background-color: red;
       transform: translateX(-50%);
-      pointer-events: none;
+    }
+    #guide-buttons {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 3;
+    }
+    #guide-buttons button {
+      font-size: 16px;
+      padding: 6px 12px;
+      margin-left: 4px;
     }
     #controls, #slider-section {
       margin: 12px 0;
@@ -90,7 +99,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅹ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅺ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -99,6 +108,10 @@
     <video id="video" controls disablePictureInPicture playsinline webkit-playsinline muted></video>
     <div id="guide-wrapper">
       <div id="guide-line"></div>
+    </div>
+    <div id="guide-buttons">
+      <button id="moveLeft">←</button>
+      <button id="moveRight">→</button>
     </div>
   </div>
 
@@ -127,6 +140,9 @@
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
     const guideWrapper = document.getElementById('guide-wrapper');
+    const guideLine = document.getElementById('guide-line');
+    const moveLeft = document.getElementById('moveLeft');
+    const moveRight = document.getElementById('moveRight');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const processButton = document.getElementById('process');
@@ -169,24 +185,17 @@
     playBtn.onclick = () => video.play();
     pauseBtn.onclick = () => video.pause();
 
-    let dragging = false;
-    const updateGuideLine = (x, rect) => {
-      const ratio = Math.max(0, Math.min(1, x / rect.width));
-      guideWrapper.style.left = `${ratio * 100}%`;
-      guideX = ratio;
+    const updateGuidePosition = () => {
+      guideWrapper.style.left = `${guideX * 100}%`;
     };
-    guideWrapper.onmousedown = e => {
-      dragging = true;
-      const rect = video.getBoundingClientRect();
-      updateGuideLine(e.clientX - rect.left, rect);
+    moveLeft.onclick = () => {
+      guideX = Math.max(0, guideX - 0.01);
+      updateGuidePosition();
     };
-    document.onmousemove = e => {
-      if (dragging) {
-        const rect = video.getBoundingClientRect();
-        updateGuideLine(e.clientX - rect.left, rect);
-      }
+    moveRight.onclick = () => {
+      guideX = Math.min(1, guideX + 0.01);
+      updateGuidePosition();
     };
-    document.onmouseup = () => dragging = false;
 
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
