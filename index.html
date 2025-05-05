@@ -110,7 +110,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v17.1</strong></h2>
+  <h2>Sprint Timer Web <strong>v18.1</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -260,6 +260,9 @@ document.addEventListener('mouseleave', stopMoving);
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
       scanMarker.style.display = 'block';
+
+scrollToTime((range[0] + range[1]) / 2); // 判定範囲の中間地点にスクロール
+
     };
 
     scrollContainer.addEventListener('scroll', () => {
@@ -269,6 +272,12 @@ document.addEventListener('mouseleave', stopMoving);
       const t = range[0] + clamped * (range[1] - range[0]);
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
     });
-  </script>
+ function scrollToTime(t) {
+  if (!scanCanvas || !range || !scrollContainer) return;
+  const percent = (t - range[0]) / (range[1] - range[0]);
+  const scrollX = percent * scanCanvas.width - scrollContainer.clientWidth / 2;
+  scrollContainer.scrollLeft = Math.max(0, scrollX);
+}
+</script>
 </body>
 </html>
