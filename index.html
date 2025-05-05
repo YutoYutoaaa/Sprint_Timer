@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.ⅩⅣ</title>
+  <title>Sprint Timer Web Var.ⅩⅤ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -45,16 +45,16 @@
       margin-top: 12px;
     }
     #guide-buttons button {
-      font-size: 24px;
-      padding: 14px 28px;
+      font-size: 28px;
+      padding: 18px 32px;
       margin-left: 8px;
     }
     #controls, #slider-section {
       margin: 12px 0;
     }
     button, label.custom-file-upload {
-      font-size: 24px;
-      padding: 14px 28px;
+      font-size: 28px;
+      padding: 18px 32px;
       margin-right: 8px;
       background: #eee;
       border: 1px solid #ccc;
@@ -101,7 +101,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.ⅩⅣ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.ⅩⅤ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -227,18 +227,21 @@
       tempCanvas.height = video.videoHeight;
       const tempCtx = tempCanvas.getContext('2d');
 
-      scanCanvas.width = endFrame - startFrame;
+      const frameWidth = 3; // 1フレームあたりの幅を3pxに
+      scanCanvas.width = (endFrame - startFrame) * frameWidth;
       scanCanvas.height = video.videoHeight;
       const scanCtx = scanCanvas.getContext('2d');
 
-      for (let i = startFrame, x = 0; i < endFrame; i++, x++) {
+      for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
         await new Promise(resolve => {
           video.currentTime = i / fps;
           video.onseeked = () => {
             tempCtx.drawImage(video, 0, 0);
             const guideXpx = Math.floor(tempCanvas.width * guideX);
             const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-            scanCtx.putImageData(line, x, 0);
+            for (let w = 0; w < frameWidth; w++) {
+              scanCtx.putImageData(line, x + w, 0);
+            }
             resolve();
           };
         });
