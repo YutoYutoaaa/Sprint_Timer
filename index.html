@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.ⅩⅧ</title>
+  <title>Sprint Timer Web Var.ⅩⅨ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -102,7 +102,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.ⅩⅧ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.ⅩⅨ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -144,14 +144,17 @@
     const video = document.getElementById('video');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
+    const processButton = document.getElementById('process');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
     const scanMarker = document.getElementById('scanMarker');
     const scanCanvas = document.getElementById('scanCanvas');
     const timeDisplay = document.getElementById('timeDisplay');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     let range = [0, 5];
     let slider;
+    let guideX = 0.5;
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -179,12 +182,48 @@
     playBtn.onclick = () => video.play();
     pauseBtn.onclick = () => video.pause();
 
-    let dragging = false;
+    processButton.onclick = async () => {
+      if (!video.duration || video.readyState < 2) return alert("動画を読み込んでください。")
+
+      const fps = 240;
+      const [startTime, endTime] = range;
+      const startFrame = Math.floor(startTime * fps);
+      const endFrame = Math.floor(endTime * fps);
+
+      loadingOverlay.style.display = 'flex';
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      scanCanvas.width = endFrame - startFrame;
+      scanCanvas.height = video.videoHeight;
+      const scanCtx = scanCanvas.getContext('2d');
+
+      for (let i = startFrame, x = 0; i < endFrame; i++, x++) {
+        await new Promise(resolve => {
+          video.currentTime = i / fps;
+          video.onseeked = () => {
+            tempCtx.drawImage(video, 0, 0);
+            const guideXpx = Math.floor(tempCanvas.width * guideX);
+            const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
+            scanCtx.putImageData(line, x, 0);
+            resolve();
+          };
+        });
+      }
+
+      loadingOverlay.style.display = 'none';
+      scanCanvas.style.display = 'block';
+      scanMarker.style.display = 'block';
+      scanMarker.style.left = '0px';
+    };
 
     scanMarker.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      dragging = true;
       scanMarker.setPointerCapture(e.pointerId);
+      dragging = true;
     });
 
     scanMarker.addEventListener('pointermove', (e) => {
@@ -197,9 +236,7 @@
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
     });
 
-    scanMarker.addEventListener('pointerup', () => {
-      dragging = false;
-    });
+    scanMarker.addEventListener('pointerup', () => dragging = false);
   </script>
 </body>
 </html>
