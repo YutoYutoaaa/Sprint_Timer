@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web Var.Ⅺ</title>
+  <title>Sprint Timer Web Var.Ⅻ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     body {
@@ -99,7 +99,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>Var.Ⅺ</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.Ⅻ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -158,6 +158,30 @@
     let videoDuration = 0;
     let range = [0, 5];
     let slider;
+    let moveInterval;
+
+    function updateGuidePosition() {
+      guideWrapper.style.left = `${guideX * 100}%`;
+    }
+
+    function startMoving(direction) {
+      moveInterval = setInterval(() => {
+        guideX = Math.max(0, Math.min(1, guideX + direction * 0.005));
+        updateGuidePosition();
+      }, 50);
+    }
+
+    function stopMoving() {
+      clearInterval(moveInterval);
+    }
+
+    moveLeft.addEventListener('mousedown', () => startMoving(-1));
+    moveRight.addEventListener('mousedown', () => startMoving(1));
+    moveLeft.addEventListener('touchstart', () => startMoving(-1));
+    moveRight.addEventListener('touchstart', () => startMoving(1));
+    document.addEventListener('mouseup', stopMoving);
+    document.addEventListener('touchend', stopMoving);
+    document.addEventListener('mouseleave', stopMoving);
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -184,18 +208,6 @@
 
     playBtn.onclick = () => video.play();
     pauseBtn.onclick = () => video.pause();
-
-    const updateGuidePosition = () => {
-      guideWrapper.style.left = `${guideX * 100}%`;
-    };
-    moveLeft.onclick = () => {
-      guideX = Math.max(0, guideX - 0.01);
-      updateGuidePosition();
-    };
-    moveRight.onclick = () => {
-      guideX = Math.min(1, guideX + 0.01);
-      updateGuidePosition();
-    };
 
     processButton.onclick = async () => {
       if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
