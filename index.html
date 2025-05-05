@@ -1,8 +1,10 @@
+var16*
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web v17.5</title>
+  <title>Sprint Timer Web Var.ⅩⅥ</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
     html, body, button, * {
@@ -41,6 +43,14 @@
       background-color: red;
       transform: translateX(-50%);
     }
+    #guide-buttons {
+      margin-top: 12px;
+    }
+    #guide-buttons button {
+      font-size: 28px;
+      padding: 18px 32px;
+      margin-left: 8px;
+    }
     #controls, #slider-section {
       margin: 12px 0;
     }
@@ -71,26 +81,20 @@
       z-index: 999;
       display: none;
     }
-    #canvas-scroll-container {
-      overflow-x: scroll;
-      white-space: nowrap;
+    #canvas-container {
       position: relative;
-      border: 1px solid #ccc;
-      height: fit-content;
-    }
-    #scanCanvas {
       display: inline-block;
     }
     #scanMarker {
-      position: fixed;
+      position: absolute;
       top: 0;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 0;
       width: 4px;
       background: yellow;
-      height: 100px;
+      cursor: ew-resize;
       z-index: 10;
-      pointer-events: none;
+      display: none;
+      touch-action: none;
     }
     #timeDisplay {
       margin-top: 8px;
@@ -100,7 +104,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v17.5</strong></h2>
+  <h2>Sprint Timer Web <strong>Var.ⅩⅥ</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -116,6 +120,10 @@
     <button id="playBtn">▶ 再生</button>
     <button id="pauseBtn">⏸ 停止</button>
     <button id="process">判定開始</button>
+    <div id="guide-buttons" style="display:inline-block">
+      <button id="moveLeft">←</button>
+      <button id="moveRight">→</button>
+    </div>
   </div>
 
   <div id="slider-section">
@@ -123,11 +131,10 @@
     <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
   </div>
 
-  <div id="canvas-scroll-container">
+  <div id="canvas-container">
     <canvas id="scanCanvas"></canvas>
+    <div id="scanMarker"></div>
   </div>
-
-  <div id="scanMarker"></div>
   <div id="timeDisplay"></div>
 
   <div id="output"></div>
@@ -137,21 +144,50 @@
   <script>
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
+    const guideWrapper = document.getElementById('guide-wrapper');
+    const guideLine = document.getElementById('guide-line');
+    const moveLeft = document.getElementById('moveLeft');
+    const moveRight = document.getElementById('moveRight');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const processButton = document.getElementById('process');
     const scanCanvas = document.getElementById('scanCanvas');
     const scanMarker = document.getElementById('scanMarker');
     const timeDisplay = document.getElementById('timeDisplay');
+    const output = document.getElementById('output');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const rangeSlider = document.getElementById('rangeSlider');
     const rangeText = document.getElementById('rangeText');
-    const scrollContainer = document.getElementById('canvas-scroll-container');
 
     let guideX = 0.5;
     let videoDuration = 0;
     let range = [0, 5];
     let slider;
+    let moveInterval;
+    let dragging = false;
+
+    function updateGuidePosition() {
+      guideWrapper.style.left = `${guideX * 100}%`;
+    }
+
+    function startMoving(direction) {
+      moveInterval = setInterval(() => {
+        guideX = Math.max(0, Math.min(1, guideX + direction * 0.005));
+        updateGuidePosition();
+      }, 50);
+    }
+
+    function stopMoving() {
+      clearInterval(moveInterval);
+    }
+
+    moveLeft.addEventListener('mousedown', () => startMoving(-1));
+    moveRight.addEventListener('mousedown', () => startMoving(1));
+    moveLeft.addEventListener('touchstart', () => startMoving(-1));
+    moveRight.addEventListener('touchstart', () => startMoving(1));
+    document.addEventListener('mouseup', stopMoving);
+    document.addEventListener('touchend', stopMoving);
+    document.addEventListener('mouseleave', stopMoving);
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -218,15 +254,39 @@
       loadingOverlay.style.display = 'none';
       scanCanvas.style.display = 'block';
       scanMarker.style.display = 'block';
-      scanMarker.style.height = scanCanvas.offsetHeight + 'px';
+      scanMarker.style.left = '0px';
     };
 
-    scrollContainer.addEventListener('scroll', () => {
-      const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-      const percent = centerX / scanCanvas.width;
-      const clamped = Math.max(0, Math.min(1, percent));
-      const t = range[0] + clamped * (range[1] - range[0]);
+    function updateTimeFromMarker(x) {
+      const width = scanCanvas.width;
+      const percent = Math.max(0, Math.min(1, x / width));
+      const t = range[0] + percent * (range[1] - range[0]);
+      scanMarker.style.left = `${percent * 100}%`;
       timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+    }
+
+    scanMarker.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      scanMarker.setPointerCapture(e.pointerId);
+    });
+
+    scanMarker.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const rect = scanCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      updateTimeFromMarker(x);
+    });
+
+    scanMarker.addEventListener('pointerup', () => dragging = false);
+    scanMarker.addEventListener('pointercancel', () => dragging = false);
+
+    scanCanvas.addEventListener('click', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.clientX - rect.left);
+    });
+    scanCanvas.addEventListener('touchstart', (e) => {
+      const rect = scanCanvas.getBoundingClientRect();
+      updateTimeFromMarker(e.touches[0].clientX - rect.left);
     });
   </script>
 </body>
