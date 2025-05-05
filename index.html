@@ -274,11 +274,12 @@ document.addEventListener('mouseleave', stopMoving);
       const tempCtx = tempCanvas.getContext('2d');
 
       const frameWidth = 3;
-      scanCanvas.width = (endFrame - startFrame) * frameWidth;
+    const margin = 100;  // 左右に100pxずつ余白
+scanCanvas.width = (endFrame - startFrame) * frameWidth + margin * 2;
       scanCanvas.height = video.videoHeight;
       const scanCtx = scanCanvas.getContext('2d');
 
-      for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
+     for (let i = startFrame, x = margin; i < endFrame; i++, x += frameWidth) {
         await new Promise(resolve => {
           video.currentTime = i / fps;
           video.onseeked = () => {
@@ -339,10 +340,11 @@ newLap.textContent = `Lap: ${t.toFixed(3)} 秒`;
 lapTimes.appendChild(newLap);
 };
 
- function scrollToTime(t) {
+function scrollToTime(t) {
   if (!scanCanvas || !range || !scrollContainer) return;
+  const margin = 100;
   const percent = (t - range[0]) / (range[1] - range[0]);
-  const scrollX = percent * scanCanvas.width - scrollContainer.clientWidth / 2;
+  const scrollX = percent * (scanCanvas.width - margin * 2) + margin - scrollContainer.clientWidth / 2;
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
 // スクロール時、markerContainer の位置も連動させる
