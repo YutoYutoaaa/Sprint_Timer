@@ -149,7 +149,14 @@
   max-width: 680px;
   margin: 20px auto;
   text-align: left;
-  font-size: 18px;
+}
+
+#lapTimes div {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 6px 0;
+}
+
 }
 
 </style>
@@ -348,7 +355,9 @@ const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
   markerContainer.appendChild(label);
 const lapTimes = document.getElementById('lapTimes');
 const newLap = document.createElement('div');
-newLap.textContent = `Lap: ${t.toFixed(3)} 秒`;
+const lapCount = lapTimes.children.length + 1;
+const suffix = lapCount === 1 ? 'st' : lapCount === 2 ? 'nd' : lapCount === 3 ? 'rd' : 'th';
+newLap.textContent = `${lapCount}${suffix}  ${t.toFixed(2)} 秒`;
 lapTimes.appendChild(newLap);
 };
 
