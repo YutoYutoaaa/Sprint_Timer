@@ -307,23 +307,25 @@ const saveTimeBtn = document.getElementById('saveTimeBtn');
 const markerContainer = document.getElementById('markerContainer');
 
 saveTimeBtn.onclick = () => {
-  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
+const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
   const percent = centerX / scanCanvas.width;
   const clamped = Math.max(0, Math.min(1, percent));
   const t = range[0] + clamped * (range[1] - range[0]);
 
+  // キャンバス上での x 位置を計算（タイム → 位置）
+  const relativeX = (t - range[0]) / (range[1] - range[0]) * scanCanvas.width;
+
   // マーカー（白線）
   const marker = document.createElement('div');
   marker.className = 'saved-marker';
-  marker.style.left = `${centerX}px`;
+  marker.style.left = `${relativeX}px`;
 
   // ラベル（タイム）
   const label = document.createElement('div');
   label.className = 'saved-label';
   label.textContent = t.toFixed(2) + ' 秒';
-  label.style.left = `${centerX}px`;
+  label.style.left = `${relativeX}px`;
 
-  // 追加
   markerContainer.appendChild(marker);
   markerContainer.appendChild(label);
 };
@@ -334,6 +336,19 @@ saveTimeBtn.onclick = () => {
   const scrollX = percent * scanCanvas.width - scrollContainer.clientWidth / 2;
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
+// スクロール時、markerContainer の位置も連動させる
+scrollContainer.addEventListener('scroll', () => {
+  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
+  const percent = centerX / scanCanvas.width;
+  const clamped = Math.max(0, Math.min(1, percent));
+  const t = range[0] + clamped * (range[1] - range[0]);
+
+  timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
+
+  // ← この下を追加！
+  markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
+});
+
 </script>
 </body>
 </html>
