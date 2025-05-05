@@ -144,7 +144,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v18.1</strong></h2>
+  <h2>Sprint Timer Web <strong>v18.3</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -250,6 +250,9 @@ document.addEventListener('mouseleave', stopMoving);
           slider.on('update', (values) => {
             range = values.map(parseFloat);
             rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+  const midTime = (range[0] + range[1]) / 2;
+  video.currentTime = midTime;
+});
           });
         };
       }
