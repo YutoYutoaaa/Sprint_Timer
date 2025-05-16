@@ -82,12 +82,13 @@
       z-index: 999;
       display: none;
     }
-    #canvas-scroll-container {
-      overflow-x: scroll;
-      white-space: nowrap;
-      position: relative;
-      border: 1px solid #ccc;
-}
+#canvas-scroll-container {
+  overflow-x: scroll;
+  white-space: nowrap;
+  position: relative;
+  border: 1px solid #ccc;
+}  /* ← この閉じカッコが必要 */
+
 #canvas-scroll-container::before,
 #canvas-scroll-container::after {
   content: "";
@@ -164,13 +165,11 @@
   margin: 6px 0;
 }
 
-}
-
 </style>
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.8</strong></h2>
+  <h2>Sprint Timer Web <strong>v2.9</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
