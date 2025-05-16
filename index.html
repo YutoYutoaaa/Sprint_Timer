@@ -2,9 +2,96 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>写真判定WEBアプリ</title>
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --primary-color: #007AFF;
+      --secondary-color: #555;
+      --bg-color: #f5f5f5;
+      --font-color: #333;
+      --btn-bg: #fff;
+      --btn-border: #ddd;
+      --bar-color: rgba(255, 0, 0, 0.8);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: var(--bg-color);
+      color: var(--font-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    #app { width: 100%; max-width: 400px; }
+    .header .title {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .video-container {
+      position: relative;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video {
+      width: 100%;
+      display: block;
+    }
+    .judge-bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--bar-color);
+      pointer-events: none;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      border-top: none;
+    }
+    .file-input { flex: 1; }
+    .btn {
+      margin-left: 8px;
+      padding: 8px 12px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn.secondary { background: var(--secondary-color); }
+    .time-display {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+      font-size: 1rem;
+    }
+    .lap-container {
+      margin-top: 16px;
+    }
+    .lap-title {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .lap-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .lap-list li {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--btn-border);
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
@@ -28,171 +115,107 @@
       </section>
     </main>
   </div>
-  <script src="js/app.js"></script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      class VideoController {
+        constructor({ videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl }) {
+          Object.assign(this, { videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl });
+          this.laps = [];
+          this.init();
+        }
+
+        init() {
+          this.fileInputEl.addEventListener('change', e => this.handleFileSelect(e));
+          this.playPauseBtnEl.addEventListener('click', () => this.togglePlayPause());
+          this.lapBtnEl.addEventListener('click', () => this.recordLap());
+          this.videoEl.addEventListener('timeupdate', () => this.updateTimeDisplay());
+          this.videoEl.addEventListener('loadedmetadata', () => this.updateTimeDisplay());
+          this.videoEl.addEventListener('error', e => this.handleError(e));
+        }
+
+        handleFileSelect(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          this.clearLaps();
+          this.videoEl.src = URL.createObjectURL(file);
+          this.videoEl.load();
+          this.playPauseBtnEl.textContent = '再生';
+          this.judgeBarEl.hidden = true;
+        }
+
+        togglePlayPause() {
+          if (this.videoEl.paused) {
+            this.videoEl.play()
+              .then(() => this.playPauseBtnEl.textContent = '停止')
+              .catch(err => console.error('Playback error:', err));
+          } else {
+            this.videoEl.pause();
+            this.playPauseBtnEl.textContent = '再生';
+          }
+        }
+
+        updateTimeDisplay() {
+          const t = this.videoEl.currentTime || 0;
+          this.timeDisplayEl.textContent = this.formatTime(t);
+        }
+
+        recordLap() {
+          const t = this.videoEl.currentTime;
+          if (isNaN(t) || !this.videoEl.duration) return;
+          this.laps.push(t);
+          this.showJudgeBar(t);
+          this.appendLapToList(t, this.laps.length);
+        }
+
+        clearLaps() {
+          this.laps = [];
+          this.lapListEl.innerHTML = '';
+        }
+
+        showJudgeBar(time) {
+          const ratio = time / this.videoEl.duration;
+          const x = Math.floor(ratio * this.videoContainerEl.clientWidth);
+          this.judgeBarEl.style.left = `${x}px`;
+          this.judgeBarEl.hidden = false;
+        }
+
+        appendLapToList(time, idx) {
+          const li = document.createElement('li');
+          li.textContent = `${idx}️⃣  ${this.formatTime(time)}`;
+          this.lapListEl.appendChild(li);
+        }
+
+        formatTime(sec) {
+          const mm = Math.floor(sec / 60),
+                ss = Math.floor(sec % 60),
+                cs = Math.floor((sec - mm*60 - ss)*100);
+          return `${mm.toString().padStart(2,'0')}:` +
+                 `${ss.toString().padStart(2,'0')}.` +
+                 `${cs.toString().padStart(2,'0')}`;
+        }
+
+        handleError(evt) {
+          console.error('Video error:', evt);
+          alert('動画読み込み中にエラーが発生しました。別のファイルをお試しください。');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        new VideoController({
+          videoEl: document.getElementById('video'),
+          fileInputEl: document.getElementById('fileInput'),
+          playPauseBtnEl: document.getElementById('playPauseBtn'),
+          lapBtnEl: document.getElementById('lapBtn'),
+          timeDisplayEl: document.getElementById('timeDisplay'),
+          lapListEl: document.getElementById('lapList'),
+          judgeBarEl: document.getElementById('judgeBar'),
+          videoContainerEl: document.getElementById('videoContainer'),
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
-
-:root {
-  --primary-color: #007AFF;
-  --secondary-color: #555;
-  --bg-color: #f5f5f5;
-  --font-color: #333;
-  --btn-bg: #fff;
-  --btn-border: #ddd;
-  --bar-color: rgba(255, 0, 0, 0.8);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  background: var(--bg-color); color: var(--font-color);
-  display: flex; justify-content: center; align-items: flex-start;
-  min-height: 100vh; padding: 20px;
-}
-#app { width: 100%; max-width: 400px; }
-.header .title { text-align: center; margin-bottom: 16px; }
-.video-container {
-  position: relative; background: #000; border-radius: 8px; overflow: hidden;
-}
-.video { width: 100%; display: block; }
-.judge-bar {
-  position: absolute; top: 0; bottom: 0; width: 2px;
-  background: var(--bar-color); pointer-events: none;
-}
-.controls {
-  display: flex; align-items: center; padding: 8px;
-  background: var(--btn-bg); border: 1px solid var(--btn-border);
-  border-top: none;
-}
-.file-input { flex: 1; }
-.btn {
-  margin-left: 8px; padding: 8px 12px;
-  background: var(--primary-color); color: #fff;
-  border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;
-}
-.btn.secondary { background: var(--secondary-color); }
-.time-display {
-  margin-left: auto; font-variant-numeric: tabular-nums; font-size: 1rem;
-}
-.lap-container { margin-top: 16px; }
-.lap-title { font-size: 1.1rem; margin-bottom: 8px; }
-.lap-list { list-style: none; padding: 0; margin: 0; }
-.lap-list li {
-  padding: 6px 8px; border-bottom: 1px solid var(--btn-border);
-  font-variant-numeric: tabular-nums;
-}
-
-(() => {
-  'use strict';
-
-  class VideoController {
-    constructor({ videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl }) {
-      Object.assign(this, { videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl });
-      this.laps = [];
-      this.init();
-    }
-
-    init() {
-      this.fileInputEl.addEventListener('change', e => this.handleFileSelect(e));
-      this.playPauseBtnEl.addEventListener('click', () => this.togglePlayPause());
-      this.lapBtnEl.addEventListener('click', () => this.recordLap());
-      this.videoEl.addEventListener('timeupdate', () => this.updateTimeDisplay());
-      this.videoEl.addEventListener('loadedmetadata', () => this.updateTimeDisplay());
-      this.videoEl.addEventListener('error', e => this.handleError(e));
-    }
-
-    handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      this.clearLaps();
-      this.videoEl.src = URL.createObjectURL(file);
-      this.videoEl.load();
-      this.playPauseBtnEl.textContent = '再生';
-      this.judgeBarEl.hidden = true;
-    }
-
-    togglePlayPause() {
-      if (this.videoEl.paused) {
-        this.videoEl.play()
-          .then(() => this.playPauseBtnEl.textContent = '停止')
-          .catch(err => console.error('Playback error:', err));
-      } else {
-        this.videoEl.pause();
-        this.playPauseBtnEl.textContent = '再生';
-      }
-    }
-
-    updateTimeDisplay() {
-      const t = this.videoEl.currentTime || 0;
-      this.timeDisplayEl.textContent = this.formatTime(t);
-    }
-
-    recordLap() {
-      const t = this.videoEl.currentTime;
-      if (isNaN(t) || !this.videoEl.duration) return;
-      this.laps.push(t);
-      this.showJudgeBar(t);
-      this.appendLapToList(t, this.laps.length);
-    }
-
-    clearLaps() {
-      this.laps = [];
-      this.lapListEl.innerHTML = '';
-    }
-
-    showJudgeBar(time) {
-      const ratio = time / this.videoEl.duration;
-      const x = Math.floor(ratio * this.videoContainerEl.clientWidth);
-      this.judgeBarEl.style.left = `${x}px`;
-      this.judgeBarEl.hidden = false;
-    }
-
-    appendLapToList(time, idx) {
-      const li = document.createElement('li');
-      li.textContent = `${idx}️⃣  ${this.formatTime(time)}`;
-      this.lapListEl.appendChild(li);
-    }
-
-    formatTime(sec) {
-      const mm = Math.floor(sec / 60), ss = Math.floor(sec % 60), cs = Math.floor((sec - mm*60 - ss)*100);
-      return `${mm.toString().padStart(2,'0')}:` +
-             `${ss.toString().padStart(2,'0')}.` +
-             `${cs.toString().padStart(2,'0')}`;
-    }
-
-    handleError(evt) {
-      console.error('Video error:', evt);
-      alert('動画読み込み中にエラーが発生しました。別のファイルをお試しください。');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    new VideoController({
-      videoEl: document.getElementById('video'),
-      fileInputEl: document.getElementById('fileInput'),
-      playPauseBtnEl: document.getElementById('playPauseBtn'),
-      lapBtnEl: document.getElementById('lapBtn'),
-      timeDisplayEl: document.getElementById('timeDisplay'),
-      lapListEl: document.getElementById('lapList'),
-      judgeBarEl: document.getElementById('judgeBar'),
-      videoContainerEl: document.getElementById('videoContainer'),
-    });
-  });
-})();
-
-# 写真判定WEBアプリ
-
-このリポジトリを GitHub にプッシュし、GitHub Pages を有効化するだけで動作します。
-
-## ファイル構成
-
-- `index.html`  
-- `css/style.css`  
-- `js/app.js`  
-
-## デプロイ手順
-
-1. リポジトリを GitHub にプッシュ  
-2. GitHub のリポジトリ設定（Settings）→ **Pages**  
-   - **Source** を `main` ブランチの `/ (root)` に設定  
-   - **Save** をクリック  
-3. 数分待って、  
