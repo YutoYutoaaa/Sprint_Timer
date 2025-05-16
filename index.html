@@ -82,6 +82,7 @@
       z-index: 999;
       display: none;
     }
+
 #canvas-scroll-container {
   overflow-x: scroll;
   white-space: nowrap;
@@ -89,15 +90,11 @@
   border: 1px solid #ccc;
 }
 
-/* ← ここで必ず閉じカッコ "}" を入れる */
-
-/* 左右に HORIZONTAL_PADDING 分の“何もない空白”を作る */
-#canvas-scroll-container::before,
-#canvas-scroll-container::after {
-  content: "";
+/* これだけで左右に余白が入ります */
+#scanCanvas {
   display: inline-block;
-  width: 500px;    /* HORIZONTAL_PADDING と同じ値 */
-  height: 1px;     /* 透明なので1pxあればOK */
+  /* HORIZONTAL_PADDING と同じ500pxを左右に */
+  margin: 0 500px;
 }
 
 /* 3) あとは続けて既存の #scanCanvas 以降の定義を */
