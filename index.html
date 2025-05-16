@@ -11,11 +11,23 @@
       user-select: none;
     }
     #saveTimeBtn {
-  font-size: 32px;      /* 文字サイズを少し大きめに */
-  padding: 24px 48px;   /* 上下24px、左右48pxの余白 */
-  /* 必要なら幅も指定できます */
-  /* width: 200px; */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;       /* 横幅だけ外枠いっぱいに */
+  /* height: 100%; */ /* この行を削除またはコメントアウト */
+  margin: 0;
+  padding: 18px 32px; /* これまでの縦横パディングをそのままキープ */
+  font-size: 28px;    /* 文字サイズもそのまま */
+  background: rgba(255,255,255,0.2);
+  border: none;
+  cursor: pointer;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
     body {
       font-family: sans-serif;
       margin: 20px;
@@ -39,6 +51,11 @@
       pointer-events: none;
       z-index: 2;
     }
+
+#canvas-wrapper {
+  height: 200px;      /* お好みの高さに */
+  overflow-y: hidden; /* 縦方向のはみ出しを隠す */
+}
 
 /* 横スクロールはそのまま */
 #canvas-scroll-container {
@@ -226,7 +243,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v5.7</strong></h2>
+  <h2>Sprint Timer Web <strong>v5.8</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -258,8 +275,8 @@
     <div id="scanMarker"></div>
 <div id="markerContainer"></div>
 <div id="timeDisplay"></div>
-</div>
 <button id="saveTimeBtn">📍 このタイムを記録</button>
+</div>
 <div id="lapTimes" style="margin-top: 12px; font-size: 20px;"></div>
   <div id="output"></div>
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
