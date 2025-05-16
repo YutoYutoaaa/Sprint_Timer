@@ -212,7 +212,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v5.1</strong></h2>
+  <h2>Sprint Timer Web <strong>v5.2</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -399,36 +399,24 @@ const saveTimeBtn = document.getElementById('saveTimeBtn');
 const markerContainer = document.getElementById('markerContainer');
 
 saveTimeBtn.onclick = () => {
-  // (1) スロー後の映像時間を取得
-  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-  const percent = centerX / scanCanvas.width;
-  const clamped = Math.max(0, Math.min(1, percent));
-  const rev = 1 - clamped;
-  const rawTime = range[0] + rev * (range[1] - range[0]);
+  const canvasX = guideX * scanCanvas.width;
+  const absoluteX = HORIZONTAL_PADDING + canvasX;
+  const rawTime = range[0] + guideX * (range[1] - range[0]);
   const realTime = rawTime / SLOW_MO_FACTOR;
-
-  // (3) マーカー位置の計算（このまま rawTime でOK）
-  const relativeX = rev * scanCanvas.width;
   const marker = document.createElement('div');
   marker.className = 'saved-marker';
-  marker.style.left = `${relativeX}px`;
+  marker.style.left = `${absoluteX}px`;
   markerContainer.appendChild(marker);
-
-  // マーカーラベル：**realTime** を表示する
   const label = document.createElement('div');
   label.className = 'saved-label';
+  label.style.left = `${absoluteX}px`;
   label.textContent = `${realTime.toFixed(2)} 秒`;
-  label.style.left = `${relativeX}px`;
   markerContainer.appendChild(label);
-
-  // ラップ結果にも **realTime** を使う
   const lapTimes = document.getElementById('lapTimes');
   const newLap = document.createElement('div');
-  const count = lapTimes.children.length + 1;
-  const suffix = count === 1 ? 'st'
-                : count === 2 ? 'nd'
-                : count === 3 ? 'rd' : 'th';
-  newLap.textContent = `${count}${suffix}  ${realTime.toFixed(2)} 秒`;
+  const n = lapTimes.children.length + 1;
+  const suf = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th';
+  newLap.textContent = `${n}${suf}  ${realTime.toFixed(2)} 秒`;
   lapTimes.appendChild(newLap);
 };
 
