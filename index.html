@@ -5,8 +5,6 @@
   <title>Sprint Timer Web v18.3</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
-    const SLOW_MO_FACTOR = 4;  // 例：240fps→60fps再生なら 4 倍スロー
-
     html, body, button, * {
       -webkit-user-select: none;
       -ms-user-select: none;
@@ -165,7 +163,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.2</strong></h2>
+  <h2>Sprint Timer Web <strong>v2.3</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -205,6 +203,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script>
+    const SLOW_MO_FACTOR = 4;
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
     const playBtn = document.getElementById('playBtn');
