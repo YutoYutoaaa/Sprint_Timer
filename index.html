@@ -178,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v3.4</strong></h2>
+  <h2>Sprint Timer Web <strong>v3.2</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -397,25 +397,6 @@ function scrollToTime(t) {
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
 // スクロール時、markerContainer の位置も連動させる
-scrollContainer.addEventListener('scroll', () => {
-  // 1) 再生中なら一旦停止
-  video.pause();
-
-  // 2) 「画面中央」のX座標を計算
-  const centerX  = scrollContainer.scrollLeft + (scrollContainer.clientWidth / 2);
-  // 3) 中央の位置がキャンバス幅の何％かを算出
-  const percent  = centerX / scanCanvas.width;
-  const clamped  = Math.max(0, Math.min(1, percent));
-  // 4) ％から「スロー後の動画時間」を求める
-  const rawTime  = range[0] + clamped * (range[1] - range[0]);
-  // 5) 動画をその時間にシーク
-  video.currentTime = rawTime;
-  // 6) 実時間に換算して表示
-  const realTime = rawTime / SLOW_MO_FACTOR;
-  timeDisplay.textContent = `通過タイム：${realTime.toFixed(3)} 秒`;
-  // 7) 保存マーカー群を追従移動
-  markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
-});
 
 </script>
 </body>
