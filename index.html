@@ -12,14 +12,20 @@
       <h1 class="title">写真判定WEBアプリ</h1>
     </header>
     <main class="main">
-      <div class="video-container">
+      <div class="video-container" id="videoContainer">
         <video id="video" class="video" preload="metadata"></video>
-        <div class="controls">
-          <input type="file" id="fileInput" accept="video/*" class="file-input">
-          <button id="playPauseBtn" class="btn">再生</button>
-          <span id="timeDisplay" class="time-display">00:00.00</span>
-        </div>
+        <div id="judgeBar" class="judge-bar" hidden></div>
       </div>
+      <div class="controls">
+        <input type="file" id="fileInput" accept="video/*" class="file-input">
+        <button id="playPauseBtn" class="btn">再生</button>
+        <button id="lapBtn" class="btn secondary">ラップ</button>
+        <span id="timeDisplay" class="time-display">00:00.00</span>
+      </div>
+      <section class="lap-container">
+        <h2 class="lap-title">ラップ記録</h2>
+        <ul id="lapList" class="lap-list"></ul>
+      </section>
     </main>
   </div>
   <script src="js/app.js"></script>
@@ -28,120 +34,87 @@
 
 :root {
   --primary-color: #007AFF;
+  --secondary-color: #555;
   --bg-color: #f5f5f5;
   --font-color: #333;
   --btn-bg: #fff;
   --btn-border: #ddd;
+  --bar-color: rgba(255, 0, 0, 0.8);
 }
-
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  background: var(--bg-color);
-  color: var(--font-color);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 20px;
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: var(--bg-color); color: var(--font-color);
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh; padding: 20px;
 }
-
-#app {
-  width: 100%;
-  max-width: 400px;
-}
-
-.header .title {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
+#app { width: 100%; max-width: 400px; }
+.header .title { text-align: center; margin-bottom: 16px; }
 .video-container {
-  position: relative;
-  background: #000;
-  border-radius: 8px;
-  overflow: hidden;
+  position: relative; background: #000; border-radius: 8px; overflow: hidden;
 }
-
-.video {
-  width: 100%;
-  display: block;
+.video { width: 100%; display: block; }
+.judge-bar {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--bar-color); pointer-events: none;
 }
-
 .controls {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  background: var(--btn-bg);
-  border: 1px solid var(--btn-border);
+  display: flex; align-items: center; padding: 8px;
+  background: var(--btn-bg); border: 1px solid var(--btn-border);
   border-top: none;
 }
-
-.file-input {
-  flex: 1;
-}
-
+.file-input { flex: 1; }
 .btn {
-  margin-left: 8px;
-  padding: 8px 12px;
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
+  margin-left: 8px; padding: 8px 12px;
+  background: var(--primary-color); color: #fff;
+  border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;
 }
-
+.btn.secondary { background: var(--secondary-color); }
 .time-display {
-  margin-left: auto;
+  margin-left: auto; font-variant-numeric: tabular-nums; font-size: 1rem;
+}
+.lap-container { margin-top: 16px; }
+.lap-title { font-size: 1.1rem; margin-bottom: 8px; }
+.lap-list { list-style: none; padding: 0; margin: 0; }
+.lap-list li {
+  padding: 6px 8px; border-bottom: 1px solid var(--btn-border);
   font-variant-numeric: tabular-nums;
-  font-size: 1rem;
 }
 
 (() => {
   'use strict';
 
   class VideoController {
-    /**
-     * @param {HTMLVideoElement} videoEl
-     * @param {HTMLInputElement} fileInputEl
-     * @param {HTMLButtonElement} playPauseBtnEl
-     * @param {HTMLElement} timeDisplayEl
-     */
-    constructor({ videoEl, fileInputEl, playPauseBtnEl, timeDisplayEl }) {
-      this.videoEl = videoEl;
-      this.fileInputEl = fileInputEl;
-      this.playPauseBtnEl = playPauseBtnEl;
-      this.timeDisplayEl = timeDisplayEl;
+    constructor({ videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl }) {
+      Object.assign(this, { videoEl, fileInputEl, playPauseBtnEl, lapBtnEl, timeDisplayEl, lapListEl, judgeBarEl, videoContainerEl });
+      this.laps = [];
       this.init();
     }
 
     init() {
-      this.fileInputEl.addEventListener('change', (e) => this.handleFileSelect(e));
+      this.fileInputEl.addEventListener('change', e => this.handleFileSelect(e));
       this.playPauseBtnEl.addEventListener('click', () => this.togglePlayPause());
+      this.lapBtnEl.addEventListener('click', () => this.recordLap());
       this.videoEl.addEventListener('timeupdate', () => this.updateTimeDisplay());
       this.videoEl.addEventListener('loadedmetadata', () => this.updateTimeDisplay());
-      this.videoEl.addEventListener('error', (e) => this.handleError(e));
+      this.videoEl.addEventListener('error', e => this.handleError(e));
     }
 
-    handleFileSelect(event) {
-      const file = event.target.files[0];
+    handleFileSelect(e) {
+      const file = e.target.files[0];
       if (!file) return;
-      const url = URL.createObjectURL(file);
-      this.videoEl.src = url;
+      this.clearLaps();
+      this.videoEl.src = URL.createObjectURL(file);
       this.videoEl.load();
       this.playPauseBtnEl.textContent = '再生';
+      this.judgeBarEl.hidden = true;
     }
 
     togglePlayPause() {
       if (this.videoEl.paused) {
         this.videoEl.play()
-          .then(() => { this.playPauseBtnEl.textContent = '停止'; })
-          .catch((err) => console.error('Playback error:', err));
+          .then(() => this.playPauseBtnEl.textContent = '停止')
+          .catch(err => console.error('Playback error:', err));
       } else {
         this.videoEl.pause();
         this.playPauseBtnEl.textContent = '再生';
@@ -153,18 +126,42 @@ body {
       this.timeDisplayEl.textContent = this.formatTime(t);
     }
 
-    formatTime(seconds) {
-      const mm = Math.floor(seconds / 60);
-      const ss = Math.floor(seconds % 60);
-      const cs = Math.floor((seconds - mm * 60 - ss) * 100);
-      return `${mm.toString().padStart(2, '0')}:` +
-             `${ss.toString().padStart(2, '0')}.` +
-             `${cs.toString().padStart(2, '0')}`;
+    recordLap() {
+      const t = this.videoEl.currentTime;
+      if (isNaN(t) || !this.videoEl.duration) return;
+      this.laps.push(t);
+      this.showJudgeBar(t);
+      this.appendLapToList(t, this.laps.length);
     }
 
-    handleError(event) {
-      console.error('Video error:', event);
-      alert('動画の読み込み中にエラーが発生しました。別のファイルをお試しください。');
+    clearLaps() {
+      this.laps = [];
+      this.lapListEl.innerHTML = '';
+    }
+
+    showJudgeBar(time) {
+      const ratio = time / this.videoEl.duration;
+      const x = Math.floor(ratio * this.videoContainerEl.clientWidth);
+      this.judgeBarEl.style.left = `${x}px`;
+      this.judgeBarEl.hidden = false;
+    }
+
+    appendLapToList(time, idx) {
+      const li = document.createElement('li');
+      li.textContent = `${idx}️⃣  ${this.formatTime(time)}`;
+      this.lapListEl.appendChild(li);
+    }
+
+    formatTime(sec) {
+      const mm = Math.floor(sec / 60), ss = Math.floor(sec % 60), cs = Math.floor((sec - mm*60 - ss)*100);
+      return `${mm.toString().padStart(2,'0')}:` +
+             `${ss.toString().padStart(2,'0')}.` +
+             `${cs.toString().padStart(2,'0')}`;
+    }
+
+    handleError(evt) {
+      console.error('Video error:', evt);
+      alert('動画読み込み中にエラーが発生しました。別のファイルをお試しください。');
     }
   }
 
@@ -173,8 +170,29 @@ body {
       videoEl: document.getElementById('video'),
       fileInputEl: document.getElementById('fileInput'),
       playPauseBtnEl: document.getElementById('playPauseBtn'),
+      lapBtnEl: document.getElementById('lapBtn'),
       timeDisplayEl: document.getElementById('timeDisplay'),
+      lapListEl: document.getElementById('lapList'),
+      judgeBarEl: document.getElementById('judgeBar'),
+      videoContainerEl: document.getElementById('videoContainer'),
     });
   });
 })();
 
+# 写真判定WEBアプリ
+
+このリポジトリを GitHub にプッシュし、GitHub Pages を有効化するだけで動作します。
+
+## ファイル構成
+
+- `index.html`  
+- `css/style.css`  
+- `js/app.js`  
+
+## デプロイ手順
+
+1. リポジトリを GitHub にプッシュ  
+2. GitHub のリポジトリ設定（Settings）→ **Pages**  
+   - **Source** を `main` ブランチの `/ (root)` に設定  
+   - **Save** をクリック  
+3. 数分待って、  
