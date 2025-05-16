@@ -87,18 +87,21 @@
   white-space: nowrap;
   position: relative;
   border: 1px solid #ccc;
-}  /* ← この閉じカッコが必要 */
+}
 
+/* 2) その直後に必ずこの擬似要素定義を入れる */
 #canvas-scroll-container::before,
 #canvas-scroll-container::after {
   content: "";
   display: inline-block;
   width: 500px;    /* HORIZONTAL_PADDING と同じ値 */
-  height: 1px;     /* 高さはお好みで（中身は透明なので1pxあればOK） */
-    }
-    #scanCanvas {
-      display: inline-block;
-    }
+  height: 1px;     /* 透明なので1pxあればOK */
+}
+
+/* 3) あとは続けて既存の #scanCanvas 以降の定義を */
+#scanCanvas {
+  display: inline-block;
+}
     #scanMarker {
       position: absolute;
       top: 0;
@@ -169,7 +172,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.9</strong></h2>
+  <h2>Sprint Timer Web <strong>v3.1</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -383,16 +386,23 @@ function scrollToTime(t) {
 }
 // スクロール時、markerContainer の位置も連動させる
 scrollContainer.addEventListener('scroll', () => {
-  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-  const percent = centerX / scanCanvas.width;
-  const clamped = Math.max(0, Math.min(1, percent));
-  // rawTime はスロー後の映像時間
-  const rawTime = range[0] + clamped * (range[1] - range[0]);
-  // 実時間に換算
+  // 1) 再生中なら一旦停止
+  video.pause();
+
+  // 2) 「画面中央」のX座標を計算
+  const centerX  = scrollContainer.scrollLeft + (scrollContainer.clientWidth / 2);
+  // 3) 中央の位置がキャンバス幅の何％かを算出
+  const percent  = centerX / scanCanvas.width;
+  const clamped  = Math.max(0, Math.min(1, percent));
+  // 4) ％から「スロー後の動画時間」を求める
+  const rawTime  = range[0] + clamped * (range[1] - range[0]);
+  // 5) 動画をその時間にシーク
+  video.currentTime = rawTime;
+  // 6) 実時間に換算して表示
   const realTime = rawTime / SLOW_MO_FACTOR;
   timeDisplay.textContent = `通過タイム：${realTime.toFixed(3)} 秒`;
+  // 7) 保存マーカー群を追従移動
   markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
-  video.currentTime = rawTime;
 });
 
 </script>
