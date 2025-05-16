@@ -88,10 +88,14 @@
   white-space: nowrap;
   position: relative;
   border: 1px solid #ccc;
+}
 
-  /* ← ここで左右に余白を作る */
-  padding-left: 500px;   /* HORIZONTAL_PADDING と同じ値 */
-  padding-right: 500px;  /* HORIZONTAL_PADDING と同じ値 */
+/* Canvas 自体に左右余白を入れる */
+#scanCanvas {
+  display: inline-block;
+  padding: 0 500px; /* HORIZONTAL_PADDING と同じ値 */
+  /* もし margin が残っていればリセット */
+  margin: 0;
 }
 
 #scanCanvas {
@@ -174,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v3.3</strong></h2>
+  <h2>Sprint Timer Web <strong>v3.2</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
