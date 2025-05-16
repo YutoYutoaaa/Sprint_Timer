@@ -243,7 +243,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v5.9</strong></h2>
+  <h2>Sprint Timer Web <strong>v6.1</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -276,6 +276,7 @@
 <div id="markerContainer"></div>
 <div id="timeDisplay"></div>
 <button id="saveTimeBtn">📍 このタイムを記録</button>
+<button id="resetBtn">↺ リセット</button>
 </div>
 <div id="lapTimes" style="margin-top: 12px; font-size: 20px;"></div>
   <div id="output"></div>
@@ -450,6 +451,30 @@ saveTimeBtn.onclick = () => {
   const suf = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th';
   newLap.textContent = `${n}${suf}  ${realTime.toFixed(2)} 秒`;
   lapTimes.appendChild(newLap);
+};
+
+const resetBtn = document.getElementById('resetBtn');
+resetBtn.onclick = () => {
+  // 動画とスライダー
+  video.pause();
+  if (slider) {
+    slider.set([0, Math.min(5, videoDuration)]);
+    range = [0, Math.min(5, videoDuration)];
+    rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+  }
+  video.currentTime = 0;
+
+  // 判定画像まわり
+  scanCanvas.style.display = 'none';
+  scanMarker.style.display = 'none';
+  scrollContainer.scrollLeft = 0;
+
+  // マーカー＆ラップタイムをクリア
+  markerContainer.innerHTML = '';
+  document.getElementById('lapTimes').innerHTML = '';
+
+  // タイム表示
+  timeDisplay.textContent = '';
 };
 
 function scrollToTime(t) {
