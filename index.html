@@ -178,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v4.7</strong></h2>
+  <h2>Sprint Timer Web <strong>v4.8</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -369,16 +369,12 @@ saveTimeBtn.onclick = () => {
   const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
   const percent = centerX / scanCanvas.width;
   const clamped = Math.max(0, Math.min(1, percent));
-  const rawTime = range[0] + clamped * (range[1] - range[0]);
-
-  // (2) 実時間に換算
-  const realTime = rawTime / SLOW_MO_FACTOR;   // ← 追加
+  const rev = 1 - clamped;
+  const rawTime = range[0] + rev * (range[1] - range[0]);
+  const realTime = rawTime / SLOW_MO_FACTOR;
 
   // (3) マーカー位置の計算（このまま rawTime でOK）
-  const revPercent = 1 - (rawTime - range[0]) / (range[1] - range[0]);
-  const relativeX = revPercent * scanCanvas.width;
-
-  // 白線マーカー
+  const relativeX = rev * scanCanvas.width;
   const marker = document.createElement('div');
   marker.className = 'saved-marker';
   marker.style.left = `${relativeX}px`;
@@ -394,11 +390,11 @@ saveTimeBtn.onclick = () => {
   // ラップ結果にも **realTime** を使う
   const lapTimes = document.getElementById('lapTimes');
   const newLap = document.createElement('div');
-  const lapCount = lapTimes.children.length + 1;
-  const suffix = lapCount === 1 ? 'st'
-               : lapCount === 2 ? 'nd'
-               : lapCount === 3 ? 'rd' : 'th';
-  newLap.textContent = `${lapCount}${suffix}  ${realTime.toFixed(2)} 秒`;  // ← ここも修正
+  const count = lapTimes.children.length + 1;
+  const suffix = count === 1 ? 'st'
+                : count === 2 ? 'nd'
+                : count === 3 ? 'rd' : 'th';
+  newLap.textContent = `${count}${suffix}  ${realTime.toFixed(2)} 秒`;
   lapTimes.appendChild(newLap);
 };
 
@@ -417,13 +413,16 @@ function scrollToTime(t) {
 scrollContainer.addEventListener('scroll', () => {
   video.pause();
   const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-  let percent = centerX / scanCanvas.width;
-  percent = Math.max(0, Math.min(1, percent));
-  // 元は range[0] + percent * (range[1]-range[0])
-  // 反転させるとこう:
-  const rawTime = range[0] + (1 - percent) * (range[1] - range[0]);
+  let p = centerX / scanCanvas.width;
+  p = Math.max(0, Math.min(1, p));
+  // 逆向きに
+  const rawTime = range[0] + (1 - p) * (range[1] - range[0]);
   const realTime = rawTime / SLOW_MO_FACTOR;
+
+  // 通過タイム表示
   timeDisplay.textContent = `通過タイム：${realTime.toFixed(3)} 秒`;
+
+  // 保存マーカー追従
   markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
 });
 
