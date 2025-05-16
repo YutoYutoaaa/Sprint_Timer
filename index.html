@@ -399,17 +399,18 @@ const saveTimeBtn = document.getElementById('saveTimeBtn');
 const markerContainer = document.getElementById('markerContainer');
 
 saveTimeBtn.onclick = () => {
-  const canvasX = guideX * scanCanvas.width;
-  const absoluteX = HORIZONTAL_PADDING + canvasX;
-  const rawTime = range[0] + guideX * (range[1] - range[0]);
+  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
+  const percent = centerX / scanCanvas.width;         // 0～1
+  const revPercent = 1 - percent;                     // 右→左が早いので反転
+  const rawTime = range[0] + revPercent * (range[1] - range[0]);
   const realTime = rawTime / SLOW_MO_FACTOR;
   const marker = document.createElement('div');
   marker.className = 'saved-marker';
-  marker.style.left = `${absoluteX}px`;
+  marker.style.left = `${centerX}px`;
   markerContainer.appendChild(marker);
   const label = document.createElement('div');
   label.className = 'saved-label';
-  label.style.left = `${absoluteX}px`;
+  label.style.left = `${centerX}px`;
   label.textContent = `${realTime.toFixed(2)} 秒`;
   markerContainer.appendChild(label);
   const lapTimes = document.getElementById('lapTimes');
