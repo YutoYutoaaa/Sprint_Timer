@@ -308,6 +308,7 @@ document.addEventListener('mouseleave', stopMoving);
   // どちらのハンドルを動かしたか(handle=0:左,1:右)
   // その位置に動画をシーク
   const t = range[handle];
+  video.pause();
   video.currentTime = t;
 });
         };
