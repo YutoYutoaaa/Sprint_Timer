@@ -89,7 +89,9 @@
   border: 1px solid #ccc;
 }
 
-/* 2) その直後に必ずこの擬似要素定義を入れる */
+/* ← ここで必ず閉じカッコ "}" を入れる */
+
+/* 左右に HORIZONTAL_PADDING 分の“何もない空白”を作る */
 #canvas-scroll-container::before,
 #canvas-scroll-container::after {
   content: "";
@@ -172,7 +174,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v3.1</strong></h2>
+  <h2>Sprint Timer Web <strong>v3.2</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -277,10 +279,16 @@ document.addEventListener('mouseleave', stopMoving);
             range: { min: 0, max: videoDuration },
             step: 0.01,
           });
-          slider.on('update', (values) => {
-            range = values.map(parseFloat);
-            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-          });
+         slider.on('update', (values, handle) => {
+  // 数値に変換して表示を更新
+  range = values.map(parseFloat);
+  rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
+
+  // どちらのハンドルを動かしたか(handle=0:左,1:右)
+  // その位置に動画をシーク
+  const t = range[handle];
+  video.currentTime = t;
+});
         };
       }
     });
