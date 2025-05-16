@@ -11,23 +11,11 @@
       user-select: none;
     }
     #saveTimeBtn {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;       /* 横幅だけ外枠いっぱいに */
-  /* height: 100%; */ /* この行を削除またはコメントアウト */
-  margin: 0;
-  padding: 18px 32px; /* これまでの縦横パディングをそのままキープ */
-  font-size: 28px;    /* 文字サイズもそのまま */
-  background: rgba(255,255,255,0.2);
-  border: none;
-  cursor: pointer;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 32px;      /* 文字サイズを少し大きめに */
+  padding: 24px 48px;   /* 上下24px、左右48pxの余白 */
+  /* 必要なら幅も指定できます */
+  /* width: 200px; */
 }
-
     body {
       font-family: sans-serif;
       margin: 20px;
@@ -51,11 +39,6 @@
       pointer-events: none;
       z-index: 2;
     }
-
-#canvas-wrapper {
-  height: 200px;      /* お好みの高さに */
-  overflow-y: hidden; /* 縦方向のはみ出しを隠す */
-}
 
 /* 横スクロールはそのまま */
 #canvas-scroll-container {
@@ -239,11 +222,28 @@
   margin: 6px 0;
 }
 
+#canvas-wrapper {
+  position: relative; /* すでに inline style で付いていますが、念のため */
+}
+
+#saveTimeBtn {
+  position: absolute;
+  bottom: 0;             /* canvas-wrapper の底部に重ねる */
+  left: 0;               /* 左端合わせ */
+  width: 100%;           /* 横幅いっぱいに */
+  box-sizing: border-box;/* padding を含めて幅計算 */
+  margin: 0;             /* デフォルトマージンをリセット */
+  z-index: 30;           /* マーカーより手前に */
+  /* 以下は高さを変えない padding・font-size はそのまま */
+  font-size: 32px;
+  padding: 24px 48px;
+}
+
 </style>
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v5.8</strong></h2>
+  <h2>Sprint Timer Web <strong>v5.9</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
