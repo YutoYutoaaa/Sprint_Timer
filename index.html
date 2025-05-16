@@ -55,6 +55,35 @@
   margin-left: 8px;
 }
 
+  #markerContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;           /* 黄色ライン(10) の上に表示 */
+  }
+
+  .saved-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: white;
+    z-index: 21;           /* ラベルより下 */
+  }
+
+  .saved-label {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+    z-index: 22;           /* マーカーより上 */
+    white-space: nowrap;
+  }
+
     button, label.custom-file-upload {
       font-size: 28px;
       padding: 18px 32px;
@@ -119,24 +148,6 @@
       z-index: 10;
       pointer-events: none;
     }
-.saved-marker {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: white;
-  z-index: 5;
-}
-
-.saved-label {
-  position: absolute;
-  top: 0;
-  color: white;
-  font-size: 14px;
-  transform: translateX(-50%);
-  z-index: 6;
-  white-space: nowrap;
-}
 
 #markerContainer {
   position: absolute;
@@ -145,7 +156,30 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 20;           /* 黄色ライン(10) の上に表示 */
 }
+
+.saved-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: white;
+  z-index: 21;           /* ラベルより下 */
+}
+
+.saved-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 14px;
+  z-index: 22;           /* マーカーより上 */
+  white-space: nowrap;
+}
+/* ───────────────────────────────────────── */
+
+
 #timeDisplay {
   position: absolute;
   bottom: 8px;
@@ -178,7 +212,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v4.8</strong></h2>
+  <h2>Sprint Timer Web <strong>v5.1</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
