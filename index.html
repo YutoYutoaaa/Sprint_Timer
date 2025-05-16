@@ -87,6 +87,8 @@
       white-space: nowrap;
       position: relative;
       border: 1px solid #ccc;
+  padding-left: 500px;   /* HORIZONTAL_PADDING と同じ値 */
+  padding-right:500px;   /* HORIZONTAL_PADDING と同じ値 */
     }
     #scanCanvas {
       display: inline-block;
@@ -163,7 +165,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.6</strong></h2>
+  <h2>Sprint Timer Web <strong>v2.5</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -298,10 +300,6 @@ document.addEventListener('mouseleave', stopMoving);
 // Canvas は“中身だけ”の幅
 scanCanvas.width  = (endFrame - startFrame) * frameWidth;
 scanCanvas.height = video.videoHeight;
-
-// CSS margin で左右に空白
-scanCanvas.style.marginLeft  = `${HORIZONTAL_PADDING}px`;
-scanCanvas.style.marginRight = `${HORIZONTAL_PADDING}px`;
 
 const scanCtx = scanCanvas.getContext('2d');
 
