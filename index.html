@@ -87,8 +87,12 @@
       white-space: nowrap;
       position: relative;
       border: 1px solid #ccc;
-  padding-left: 500px;   /* HORIZONTAL_PADDING と同じ値 */
-  padding-right:500px;   /* HORIZONTAL_PADDING と同じ値 */
+#canvas-scroll-container::before,
+#canvas-scroll-container::after {
+  content: "";
+  display: inline-block;
+  width: 500px;    /* HORIZONTAL_PADDING と同じ値 */
+  height: 1px;     /* 高さはお好みで（中身は透明なので1pxあればOK） */
     }
     #scanCanvas {
       display: inline-block;
@@ -165,7 +169,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.6</strong></h2>
+  <h2>Sprint Timer Web <strong>v2.7</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -321,8 +325,6 @@ for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
       }
 
       loadingOverlay.style.display = 'none';
-      scanCanvas.style.display = 'block';
-      scanMarker.style.display = 'block';
 
 scrollToTime((range[0] + range[1]) / 2); // 判定範囲の中間地点にスクロール
 
