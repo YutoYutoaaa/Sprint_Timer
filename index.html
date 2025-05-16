@@ -20,6 +20,7 @@
       font-family: sans-serif;
       margin: 20px;
     }
+
     #video-container {
       position: relative;
       max-width: 100%;
@@ -38,7 +39,19 @@
       pointer-events: none;
       z-index: 2;
     }
-    #guide-line {
+
+#canvas-wrapper {
+  height: 200px;      /* お好みの高さに */
+  overflow-y: hidden; /* 縦方向のはみ出しを隠す */
+}
+
+/* 横スクロールはそのまま */
+#canvas-scroll-container {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}  
+
+  #guide-line {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -218,7 +231,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v5.5</strong></h2>
+  <h2>Sprint Timer Web <strong>v5.2</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
