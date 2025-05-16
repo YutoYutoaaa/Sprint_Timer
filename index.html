@@ -178,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v4.6</strong></h2>
+  <h2>Sprint Timer Web <strong>v4.7</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -375,7 +375,8 @@ saveTimeBtn.onclick = () => {
   const realTime = rawTime / SLOW_MO_FACTOR;   // ← 追加
 
   // (3) マーカー位置の計算（このまま rawTime でOK）
-  const relativeX = (rawTime - range[0]) / (range[1] - range[0]) * scanCanvas.width;
+  const revPercent = 1 - (rawTime - range[0]) / (range[1] - range[0]);
+  const relativeX = revPercent * scanCanvas.width;
 
   // 白線マーカー
   const marker = document.createElement('div');
@@ -386,7 +387,7 @@ saveTimeBtn.onclick = () => {
   // マーカーラベル：**realTime** を表示する
   const label = document.createElement('div');
   label.className = 'saved-label';
-  label.textContent = `${realTime.toFixed(2)} 秒`;  // ← ここを修正
+  label.textContent = `${realTime.toFixed(2)} 秒`;
   label.style.left = `${relativeX}px`;
   markerContainer.appendChild(label);
 
