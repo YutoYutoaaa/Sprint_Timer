@@ -178,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v3.6</strong></h2>
+  <h2>Sprint Timer Web <strong>v3.7</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -397,6 +397,19 @@ function scrollToTime(t) {
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
 // スクロール時、markerContainer の位置も連動させる
+
+scrollContainer.addEventListener('scroll', () => {
+  video.pause();
+  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth/2;
+  const percent = centerX / scanCanvas.width;
+  const clamped = Math.max(0, Math.min(1, percent));
+  const rawTime = range[0] + clamped * (range[1] - range[0]);
+  // → 以下の行をコメントアウトまたは削除
+  // video.currentTime = rawTime;
+  const realTime = rawTime / SLOW_MO_FACTOR;
+  timeDisplay.textContent = `通過タイム：${realTime.toFixed(3)} 秒`;
+  markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
+});
 
 </script>
 </body>
