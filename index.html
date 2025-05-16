@@ -5,211 +5,176 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Sprint Timer Web v18.3</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
-<style>
-  :root {
-    --primary: #007AFF;
-    --primary-hover: #005ECC;
-    --bg: #F9F9F9;
-    --border: #CCC;
-    --radius: 4px;
-    --btn-bg: #EEE;
-    --btn-hover: #DDD;
-    --btn-color: #333;
-    --padding-horizontal: 500px; /* HORIZONTAL_PADDING と同じ値 */
-  }
+  <style>
+    html, body, button, * {
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #video-container {
+      position: relative;
+      max-width: 100%;
+      margin-bottom: 16px;
+    }
+    video {
+      width: 100%;
+    }
+    #guide-wrapper {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    #guide-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      background-color: red;
+      transform: translateX(-50%);
+    }
+    #guide-buttons button {
+      font-size: 28px;
+      padding: 18px 32px;
+      margin-left: 8px;
+    }
+    #controls, #slider-section {
+      margin: 12px 0;
+    }
+    #guide-buttons button {
+  font-size: 28px;
+  padding: 18px 32px;
+  margin-left: 8px;
+}
 
-  /* 全体リセット */
-  html, body, button, * {
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    box-sizing: border-box;
-  }
-  body {
-    font-family: sans-serif;
-    margin: 20px;
-    background: var(--bg);
-    color: var(--btn-color);
-  }
+    button, label.custom-file-upload {
+  font-size: 16px;       /* もとの見た目に合わせて小さく */
+  padding: 8px 16px;     /* もとの見た目に合わせて小さく */
+  margin-right: 8px;     /* マージンはそのまま */
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;    /* コーナーも少しだけ丸く */
+  cursor: pointer;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #333;
+      z-index: 999;
+      display: none;
+    }
 
-  /* ファイル選択 */
-  label.custom-file-upload {
-    display: inline-block;
-    font-size: 16px;
-    padding: 8px 16px;
-    margin-bottom: 16px;
-    background: var(--btn-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: background .2s ease;
-  }
-  label.custom-file-upload:hover {
-    background: var(--btn-hover);
-  }
-  input[type="file"] { display: none; }
+#canvas-scroll-container {
+  overflow-x: scroll;
+  white-space: nowrap;
+  position: relative;
+  border: 1px solid #ccc;
+}
 
-  /* 動画コンテナ */
-  #video-container {
-    position: relative;
-    max-width: 100%;
-    margin-bottom: 16px;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  video {
-    width: 100%;
-    display: block;
-  }
+/* Canvas 自体に左右余白を入れる */
+#scanCanvas {
+  display: inline-block;
+  padding: 0 500px; /* HORIZONTAL_PADDING と同じ値 */
+  /* もし margin が残っていればリセット */
+  margin: 0;
+}
 
-  /* ガイドライン */
-  #guide-wrapper {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 2;
-  }
-  #guide-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 4px;
-    background: red;
-    transform: translateX(-50%);
-  }
+#scanCanvas {
+  display: inline-block;
+  /* マージン指定があれば消す */
+  margin: 0;
+}
 
-  /* コントロール */
-  #controls,
-  #slider-section {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 12px 0;
-  }
-  button {
-    font-size: 16px;
-    padding: 8px 16px;
-    background: var(--btn-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--btn-color);
-    cursor: pointer;
-    transition: background .2s ease, transform .2s ease;
-  }
-  button:hover {
-    background: var(--btn-hover);
-    transform: translateY(-1px);
-  }
+/* 3) あとは続けて既存の #scanCanvas 以降の定義を */
+#scanCanvas {
+  display: inline-block;
+}
+    #scanMarker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: yellow;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: none;
+    }
+.saved-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: white;
+  z-index: 5;
+}
 
-  /* ← → ボタン */
-  #guide-buttons button {
-    padding: 12px;
-  }
+.saved-label {
+  position: absolute;
+  top: 0;
+  color: white;
+  font-size: 14px;
+  transform: translateX(-50%);
+  z-index: 6;
+  white-space: nowrap;
+}
 
-  /* 判定画像スクロール部分 */
-  #canvas-scroll-container {
-    overflow-x: scroll;
-    white-space: nowrap;
-    position: relative;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-top: 16px;
-  }
-  /* Canvas 自体に左右余白 */
-  #scanCanvas {
-    display: inline-block;
-    padding: 0 var(--padding-horizontal);
-    margin: 0;
-    vertical-align: top;
-  }
-  #scanMarker {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: yellow;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    pointer-events: none;
-  }
+#markerContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#timeDisplay {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 54px;  /* 約3倍に */
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 6px;
+  z-index: 20;
+}
+#lapTimes {
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  max-width: 680px;
+  margin: 20px auto;
+  text-align: left;
+}
 
-  /* 記録マーカー */
-  .saved-marker {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: white;
-    z-index: 5;
-  }
-  .saved-label {
-    position: absolute;
-    top: 0;
-    color: white;
-    font-size: 14px;
-    transform: translateX(-50%);
-    z-index: 6;
-    white-space: nowrap;
-  }
-  #markerContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
+#lapTimes div {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 6px 0;
+}
 
-  /* 通過タイム表示 */
-  #timeDisplay {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    font-size: 54px;
-    color: white;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 4px 12px;
-    border-radius: var(--radius);
-    z-index: 20;
-  }
-
-  /* ラップタイム一覧 */
-  #lapTimes {
-    max-width: 680px;
-    margin: 20px auto;
-    padding: 12px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    text-align: left;
-  }
-  #lapTimes div {
-    margin: 6px 0;
-    font-size: 24px;
-    font-weight: bold;
-  }
-
-  /* ローディングオーバーレイ */
-  #loadingOverlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(255,255,255,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: #333;
-    z-index: 999;
-  }
 </style>
 </head>
 <body>
