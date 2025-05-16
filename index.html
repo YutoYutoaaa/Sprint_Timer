@@ -178,7 +178,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v4.4</strong></h2>
+  <h2>Sprint Timer Web <strong>v4.6</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -333,14 +333,11 @@ document.addEventListener('mouseleave', stopMoving);
       tempCanvas.height = video.videoHeight;
       const tempCtx = tempCanvas.getContext('2d');
 
-      const frameWidth = 3;
-// Canvas は“中身だけ”の幅
+const frameWidth = 3;
 scanCanvas.width  = (endFrame - startFrame) * frameWidth;
 scanCanvas.height = video.videoHeight;
-
 const scanCtx = scanCanvas.getContext('2d');
-
-// 描画位置は x=0 からスタート
+const totalWidth = scanCanvas.width;
 for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
 
         await new Promise(resolve => {
@@ -349,10 +346,10 @@ for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
             tempCtx.drawImage(video, 0, 0);
             const guideXpx = Math.floor(tempCanvas.width * guideX);
             const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-            for (let w = 0; w < frameWidth; w++) {
-              scanCtx.putImageData(line, x + w, 0);
-            }
-            resolve();
+  const drawX = totalWidth - x - frameWidth;
+  for (let w = 0; w < frameWidth; w++) {
+    scanCtx.putImageData(line, drawX + w, 0);
+  }            resolve();
           };
         });
       }
@@ -407,23 +404,23 @@ saveTimeBtn.onclick = () => {
 function scrollToTime(t) {
   if (!scanCanvas || !range || !scrollContainer) return;
   const margin = HORIZONTAL_PADDING;
-  const percent = (t - range[0]) / (range[1] - range[0]);
+  const p = (t - range[0]) / (range[1] - range[0]);
+  const rev = 1 - p;
   const scrollX = margin 
-                + percent * scanCanvas.width 
+                + rev * scanCanvas.width 
                 - scrollContainer.clientWidth / 2;
-
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
 // スクロール時、markerContainer の位置も連動させる
 
 scrollContainer.addEventListener('scroll', () => {
   video.pause();
-  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth/2;
-  const percent = centerX / scanCanvas.width;
-  const clamped = Math.max(0, Math.min(1, percent));
-  const rawTime = range[0] + clamped * (range[1] - range[0]);
-  // → 以下の行をコメントアウトまたは削除
-  // video.currentTime = rawTime;
+  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
+  let percent = centerX / scanCanvas.width;
+  percent = Math.max(0, Math.min(1, percent));
+  // 元は range[0] + percent * (range[1]-range[0])
+  // 反転させるとこう:
+  const rawTime = range[0] + (1 - percent) * (range[1] - range[0]);
   const realTime = rawTime / SLOW_MO_FACTOR;
   timeDisplay.textContent = `通過タイム：${realTime.toFixed(3)} 秒`;
   markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
