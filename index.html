@@ -2,385 +2,179 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Sprint Timer Web v18.3</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
-  <style>
-    html, body, button, * {
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-    }
-    #video-container {
-      position: relative;
-      max-width: 100%;
-      margin-bottom: 16px;
-    }
-    video {
-      width: 100%;
-    }
-    #guide-wrapper {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      z-index: 2;
-    }
-    #guide-line {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 4px;
-      background-color: red;
-      transform: translateX(-50%);
-    }
-    #guide-buttons button {
-      font-size: 28px;
-      padding: 18px 32px;
-      margin-left: 8px;
-    }
-    #controls, #slider-section {
-      margin: 12px 0;
-    }
-    #guide-buttons button {
-  font-size: 28px;
-  padding: 18px 32px;
-  margin-left: 8px;
-}
-
-    button, label.custom-file-upload {
-      font-size: 28px;
-      padding: 18px 32px;
-      margin-right: 8px;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    input[type="file"] {
-      display: none;
-    }
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #333;
-      z-index: 999;
-      display: none;
-    }
-    #canvas-scroll-container {
-      overflow-x: scroll;
-      white-space: nowrap;
-      position: relative;
-      border: 1px solid #ccc;
-    }
-    #scanCanvas {
-      display: inline-block;
-    }
-    #scanMarker {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: yellow;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      pointer-events: none;
-    }
-.saved-marker {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: white;
-  z-index: 5;
-}
-
-.saved-label {
-  position: absolute;
-  top: 0;
-  color: white;
-  font-size: 14px;
-  transform: translateX(-50%);
-  z-index: 6;
-  white-space: nowrap;
-}
-
-#markerContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-#timeDisplay {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
-  font-size: 54px;  /* 約3倍に */
-  color: white;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 4px 12px;
-  border-radius: 6px;
-  z-index: 20;
-}
-#lapTimes {
-  border: 1px solid #ccc;
-  padding: 12px;
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  max-width: 680px;
-  margin: 20px auto;
-  text-align: left;
-}
-
-#lapTimes div {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 6px 0;
-}
-
-}
-
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>写真判定WEBアプリ</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <h2>Sprint Timer Web <strong>v18.3</strong></h2>
-
-  <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
-  <input type="file" id="fileInput" accept="video/*">
-
-  <div id="video-container">
-    <video id="video" controls disablePictureInPicture playsinline webkit-playsinline muted></video>
-    <div id="guide-wrapper">
-      <div id="guide-line"></div>
-    </div>
+  <div id="app">
+    <header class="header">
+      <h1 class="title">写真判定WEBアプリ</h1>
+    </header>
+    <main class="main">
+      <div class="video-container">
+        <video id="video" class="video" preload="metadata"></video>
+        <div class="controls">
+          <input type="file" id="fileInput" accept="video/*" class="file-input">
+          <button id="playPauseBtn" class="btn">再生</button>
+          <span id="timeDisplay" class="time-display">00:00.00</span>
+        </div>
+      </div>
+    </main>
   </div>
-
-  <div id="controls">
-    <button id="playBtn">▶ 再生</button>
-    <button id="pauseBtn">⏸ 停止</button>
-    <button id="process">判定開始</button>
-    <div id="guide-buttons" style="display:inline-block">
-    <button id="moveLeft">←</button>
-    <button id="moveRight">→</button>
-  </div>
-
-  <div id="slider-section">
-    <div id="rangeSlider"></div>
-    <div id="rangeLabel">判定範囲：<span id="rangeText"></span></div>
-  </div>
-<div id="canvas-wrapper" style="position: relative;">
-  <div id="canvas-scroll-container">
-    <canvas id="scanCanvas"></canvas>
- </div>
-    <div id="scanMarker"></div>
-<div id="markerContainer"></div>
-<div id="timeDisplay"></div>
-</div>
-<button id="saveTimeBtn">📍 このタイムを記録</button>
-<div id="lapTimes" style="margin-top: 12px; font-size: 20px;"></div>
-  <div id="output"></div>
-  <div id="loadingOverlay">判定中... しばらくお待ちください</div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const video = document.getElementById('video');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const processButton = document.getElementById('process');
-    const scanCanvas = document.getElementById('scanCanvas');
-    const scanMarker = document.getElementById('scanMarker');
-    const timeDisplay = document.getElementById('timeDisplay');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const rangeSlider = document.getElementById('rangeSlider');
-    const rangeText = document.getElementById('rangeText');
-    const scrollContainer = document.getElementById('canvas-scroll-container');
-    const guideWrapper = document.getElementById('guide-wrapper');
-const moveLeft = document.getElementById('moveLeft');
-const moveRight = document.getElementById('moveRight');
-
-let guideX = 0.5;
-let moveInterval;
-
-function updateGuidePosition() {
-  guideWrapper.style.left = `${guideX * 100}%`;
-}
-
-function startMoving(direction) {
-  moveInterval = setInterval(() => {
-    guideX = Math.max(0, Math.min(1, guideX + direction * 0.005));
-    updateGuidePosition();
-  }, 50);
-}
-
-function stopMoving() {
-  clearInterval(moveInterval);
-}
-
-moveLeft.addEventListener('mousedown', () => startMoving(-1));
-moveRight.addEventListener('mousedown', () => startMoving(1));
-moveLeft.addEventListener('touchstart', () => startMoving(-1));
-moveRight.addEventListener('touchstart', () => startMoving(1));
-document.addEventListener('mouseup', stopMoving);
-document.addEventListener('touchend', stopMoving);
-document.addEventListener('mouseleave', stopMoving);
-
-
-    
-    let videoDuration = 0;
-    let range = [0, 5];
-    let slider;
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        video.src = url;
-        video.load();
-        video.onloadedmetadata = () => {
-          videoDuration = video.duration;
-          if (slider) slider.destroy();
-          slider = noUiSlider.create(rangeSlider, {
-            start: [0, Math.min(5, videoDuration)],
-            connect: true,
-            range: { min: 0, max: videoDuration },
-            step: 0.01,
-          });
-          slider.on('update', (values) => {
-            range = values.map(parseFloat);
-            rangeText.textContent = `${range[0].toFixed(2)} ～ ${range[1].toFixed(2)} 秒`;
-          });
-        };
-      }
-    });
-
-    playBtn.onclick = () => video.play();
-    pauseBtn.onclick = () => video.pause();
-
-    processButton.onclick = async () => {
-      if (!videoDuration || video.readyState < 2) return alert("動画を読み込んでください。");
-
-      const fps = 240;
-      const [startTime, endTime] = range;
-      const startFrame = Math.floor(startTime * fps);
-      const endFrame = Math.floor(endTime * fps);
-
-      loadingOverlay.style.display = 'flex';
-
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = video.videoWidth;
-      tempCanvas.height = video.videoHeight;
-      const tempCtx = tempCanvas.getContext('2d');
-
-      const frameWidth = 3;
-    const margin = 500;  // 左右に500pxずつ余白
-scanCanvas.width = (endFrame - startFrame) * frameWidth + margin * 2;
-      scanCanvas.height = video.videoHeight;
-      const scanCtx = scanCanvas.getContext('2d');
-
-     for (let i = startFrame, x = margin; i < endFrame; i++, x += frameWidth) {
-        await new Promise(resolve => {
-          video.currentTime = i / fps;
-          video.onseeked = () => {
-            tempCtx.drawImage(video, 0, 0);
-            const guideXpx = Math.floor(tempCanvas.width * guideX);
-            const line = tempCtx.getImageData(guideXpx, 0, 1, tempCanvas.height);
-            for (let w = 0; w < frameWidth; w++) {
-              scanCtx.putImageData(line, x + w, 0);
-            }
-            resolve();
-          };
-        });
-      }
-
-      loadingOverlay.style.display = 'none';
-      scanCanvas.style.display = 'block';
-      scanMarker.style.display = 'block';
-
-scrollToTime((range[0] + range[1]) / 2); // 判定範囲の中間地点にスクロール
-
-    };
-
-    scrollContainer.addEventListener('scroll', () => {
-      const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-      const percent = centerX / scanCanvas.width;
-      const clamped = Math.max(0, Math.min(1, percent));
-      const t = range[0] + clamped * (range[1] - range[0]);
-      timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-    });
-const saveTimeBtn = document.getElementById('saveTimeBtn');
-const markerContainer = document.getElementById('markerContainer');
-
-saveTimeBtn.onclick = () => {
-const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-  const percent = centerX / scanCanvas.width;
-  const clamped = Math.max(0, Math.min(1, percent));
-  const t = range[0] + clamped * (range[1] - range[0]);
-
-  // キャンバス上での x 位置を計算（タイム → 位置）
-  const relativeX = (t - range[0]) / (range[1] - range[0]) * scanCanvas.width;
-
-  // マーカー（白線）
-  const marker = document.createElement('div');
-  marker.className = 'saved-marker';
-  marker.style.left = `${relativeX}px`;
-
-  // ラベル（タイム）
-  const label = document.createElement('div');
-  label.className = 'saved-label';
-  label.textContent = t.toFixed(2) + ' 秒';
-  label.style.left = `${relativeX}px`;
-
-  markerContainer.appendChild(marker);
-  markerContainer.appendChild(label);
-const lapTimes = document.getElementById('lapTimes');
-const newLap = document.createElement('div');
-const lapCount = lapTimes.children.length + 1;
-const suffix = lapCount === 1 ? 'st' : lapCount === 2 ? 'nd' : lapCount === 3 ? 'rd' : 'th';
-newLap.textContent = `${lapCount}${suffix}  ${t.toFixed(2)} 秒`;
-lapTimes.appendChild(newLap);
-};
-
-function scrollToTime(t) {
-  if (!scanCanvas || !range || !scrollContainer) return;
-  const margin = 500;
-  const percent = (t - range[0]) / (range[1] - range[0]);
-  const scrollX = percent * (scanCanvas.width - margin * 2) + margin - scrollContainer.clientWidth / 2;
-  scrollContainer.scrollLeft = Math.max(0, scrollX);
-}
-// スクロール時、markerContainer の位置も連動させる
-scrollContainer.addEventListener('scroll', () => {
-  const centerX = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-  const percent = centerX / scanCanvas.width;
-  const clamped = Math.max(0, Math.min(1, percent));
-  const t = range[0] + clamped * (range[1] - range[0]);
-
-  timeDisplay.textContent = `通過タイム：${t.toFixed(3)} 秒`;
-
-  // ← この下を追加！
-  markerContainer.style.transform = `translateX(${-scrollContainer.scrollLeft}px)`;
-});
-
-</script>
+  <script src="js/app.js"></script>
 </body>
 </html>
+
+:root {
+  --primary-color: #007AFF;
+  --bg-color: #f5f5f5;
+  --font-color: #333;
+  --btn-bg: #fff;
+  --btn-border: #ddd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: var(--bg-color);
+  color: var(--font-color);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#app {
+  width: 100%;
+  max-width: 400px;
+}
+
+.header .title {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.video-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  display: block;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  border-top: none;
+}
+
+.file-input {
+  flex: 1;
+}
+
+.btn {
+  margin-left: 8px;
+  padding: 8px 12px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.time-display {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+}
+
+(() => {
+  'use strict';
+
+  class VideoController {
+    /**
+     * @param {HTMLVideoElement} videoEl
+     * @param {HTMLInputElement} fileInputEl
+     * @param {HTMLButtonElement} playPauseBtnEl
+     * @param {HTMLElement} timeDisplayEl
+     */
+    constructor({ videoEl, fileInputEl, playPauseBtnEl, timeDisplayEl }) {
+      this.videoEl = videoEl;
+      this.fileInputEl = fileInputEl;
+      this.playPauseBtnEl = playPauseBtnEl;
+      this.timeDisplayEl = timeDisplayEl;
+      this.init();
+    }
+
+    init() {
+      this.fileInputEl.addEventListener('change', (e) => this.handleFileSelect(e));
+      this.playPauseBtnEl.addEventListener('click', () => this.togglePlayPause());
+      this.videoEl.addEventListener('timeupdate', () => this.updateTimeDisplay());
+      this.videoEl.addEventListener('loadedmetadata', () => this.updateTimeDisplay());
+      this.videoEl.addEventListener('error', (e) => this.handleError(e));
+    }
+
+    handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      this.videoEl.src = url;
+      this.videoEl.load();
+      this.playPauseBtnEl.textContent = '再生';
+    }
+
+    togglePlayPause() {
+      if (this.videoEl.paused) {
+        this.videoEl.play()
+          .then(() => { this.playPauseBtnEl.textContent = '停止'; })
+          .catch((err) => console.error('Playback error:', err));
+      } else {
+        this.videoEl.pause();
+        this.playPauseBtnEl.textContent = '再生';
+      }
+    }
+
+    updateTimeDisplay() {
+      const t = this.videoEl.currentTime || 0;
+      this.timeDisplayEl.textContent = this.formatTime(t);
+    }
+
+    formatTime(seconds) {
+      const mm = Math.floor(seconds / 60);
+      const ss = Math.floor(seconds % 60);
+      const cs = Math.floor((seconds - mm * 60 - ss) * 100);
+      return `${mm.toString().padStart(2, '0')}:` +
+             `${ss.toString().padStart(2, '0')}.` +
+             `${cs.toString().padStart(2, '0')}`;
+    }
+
+    handleError(event) {
+      console.error('Video error:', event);
+      alert('動画の読み込み中にエラーが発生しました。別のファイルをお試しください。');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    new VideoController({
+      videoEl: document.getElementById('video'),
+      fileInputEl: document.getElementById('fileInput'),
+      playPauseBtnEl: document.getElementById('playPauseBtn'),
+      timeDisplayEl: document.getElementById('timeDisplay'),
+    });
+  });
+})();
+
