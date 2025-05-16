@@ -163,7 +163,7 @@
 </head>
 <body>
 
-  <h2>Sprint Timer Web <strong>v2.Ⅳ</strong></h2>
+  <h2>Sprint Timer Web <strong>v2.5</strong></h2>
 
   <label for="fileInput" class="custom-file-upload">📁 ファイルを選ぶ</label>
   <input type="file" id="fileInput" accept="video/*">
@@ -204,6 +204,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script>
     const SLOW_MO_FACTOR = 4;
+    const HORIZONTAL_PADDING = 500;
     const fileInput = document.getElementById('fileInput');
     const video = document.getElementById('video');
     const playBtn = document.getElementById('playBtn');
@@ -294,12 +295,19 @@ document.addEventListener('mouseleave', stopMoving);
       const tempCtx = tempCanvas.getContext('2d');
 
       const frameWidth = 3;
-    const margin = 500;  // 左右に500pxずつ余白
-scanCanvas.width = (endFrame - startFrame) * frameWidth + margin * 2;
-      scanCanvas.height = video.videoHeight;
-      const scanCtx = scanCanvas.getContext('2d');
+// Canvas は“中身だけ”の幅
+scanCanvas.width  = (endFrame - startFrame) * frameWidth;
+scanCanvas.height = video.videoHeight;
 
-     for (let i = startFrame, x = margin; i < endFrame; i++, x += frameWidth) {
+// CSS margin で左右に空白
+scanCanvas.style.marginLeft  = `${HORIZONTAL_PADDING}px`;
+scanCanvas.style.marginRight = `${HORIZONTAL_PADDING}px`;
+
+const scanCtx = scanCanvas.getContext('2d');
+
+// 描画位置は x=0 からスタート
+for (let i = startFrame, x = 0; i < endFrame; i++, x += frameWidth) {
+
         await new Promise(resolve => {
           video.currentTime = i / fps;
           video.onseeked = () => {
@@ -364,9 +372,12 @@ saveTimeBtn.onclick = () => {
 
 function scrollToTime(t) {
   if (!scanCanvas || !range || !scrollContainer) return;
-  const margin = 500;
+  const margin = HORIZONTAL_PADDING;
   const percent = (t - range[0]) / (range[1] - range[0]);
-  const scrollX = percent * (scanCanvas.width - margin * 2) + margin - scrollContainer.clientWidth / 2;
+  const scrollX = margin 
+                + percent * scanCanvas.width 
+                - scrollContainer.clientWidth / 2;
+
   scrollContainer.scrollLeft = Math.max(0, scrollX);
 }
 // スクロール時、markerContainer の位置も連動させる
