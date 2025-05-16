@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Sprint Timer Web v18.3</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <style>
@@ -57,13 +56,13 @@
 }
 
     button, label.custom-file-upload {
-  font-size: 16px;       /* もとの見た目に合わせて小さく */
-  padding: 8px 16px;     /* もとの見た目に合わせて小さく */
-  margin-right: 8px;     /* マージンはそのまま */
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 4px;    /* コーナーも少しだけ丸く */
-  cursor: pointer;
+      font-size: 28px;
+      padding: 18px 32px;
+      margin-right: 8px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
     }
     input[type="file"] {
       display: none;
@@ -218,6 +217,23 @@
   <div id="loadingOverlay">判定中... しばらくお待ちください</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+
+  <!-- ↓ ここからピンチアウト禁止スクリプト -->
+  <script>
+    (function() {
+      // iOS Safari のピンチズーム抑制
+      document.addEventListener('gesturestart', e => e.preventDefault());
+      document.addEventListener('gesturechange', e => e.preventDefault());
+      document.addEventListener('gestureend', e => e.preventDefault());
+      // Android/Chrome などの two-finger pinch 抑制
+      document.addEventListener('touchmove', e => {
+        if (e.scale !== undefined && e.scale !== 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    })();
+  </script>
+
   <script>
     const SLOW_MO_FACTOR = 4;
     const HORIZONTAL_PADDING = 500;
